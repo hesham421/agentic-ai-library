@@ -21,7 +21,9 @@ depends_on: [spring-boot]
 
 # Spring AI
 
-> **[LOCAL PROJECT NOTE - added on install, not part of upstream]** This project targets **Spring AI 2.0.1 on Spring Boot 4.1.1 / Java 25**. The version statements in this skill and in `references/version-guide.md` describe Spring AI 1.x on Boot 3.4 and are outdated for this repository. The project `pom.xml` and the official Spring AI 2.0 reference documentation (https://docs.spring.io/spring-ai/reference/) take precedence; verify APIs against Spring AI 2.0 before relying on a 1.x example.
+> **[LOCAL PROJECT NOTE - added on install, not part of upstream]** This project — aias, the Request Verification Service — targets **Spring AI 2.0 on Spring Boot 4 / Java 21** (the profile; `pom.xml` currently pins Spring AI 2.0.1, Boot 4.1.1 and `java.version` 25). The version statements in this skill and in `references/version-guide.md` describe Spring AI 1.x on Boot 3.4 and are outdated for this repository. The official Spring AI 2.0 reference documentation (https://docs.spring.io/spring-ai/reference/) takes precedence; verify APIs against Spring AI 2.0 before relying on a 1.x example.
+>
+> **Where this skill does not apply to aias** (domain-profile G1, G7, G9, G12; scope §1): the engine depends on the provider-neutral **`ChatModel` / `Prompt` / `ChatOptions` API only** (plus `BeanOutputConverter` for structured output), with no provider-specific option class or feature — the "always use `ChatClient`" advice below does not override that. The model is given **no tools** (it never runs SQL, reads files or triggers approval), there is **no chat memory, no RAG / vector store and no multi-agent orchestration**, and document content is passed only as delimited data, never as instructions. The host query channel is an MCP *client* behind the query port, not a model tool. Use the sections on structured output, observability and retry; treat tool calling, advisors-with-memory, RAG and agentic patterns as out of scope.
 
 **Pattern:** Process
 

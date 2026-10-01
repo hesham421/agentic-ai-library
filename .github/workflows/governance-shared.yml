@@ -1,0 +1,78 @@
+name: governance-shared
+
+# This repository holds NO governance artifacts. They live in the shared repo,
+# mounted here as a submodule, and every command reads and writes them there.
+# A checkout without `submodules: recursive` therefore has none of them, and
+# almost nothing says so out loud. This job is what says so.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shared:
+    runs-on: ubuntu-latest
+    env:
+      TRACK: backend   # this repo's track — the ONE place it is named
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: The shared submodule is initialised, and says which profile is live
+        # The profile folder name is NOT spelled here: it is whatever the factory
+        # published. Spelling it would make a second profile a CI edit.
+        run: |
+          SUMMARY=governance/shared/platform/profile-summary.json
+          test -f "$SUMMARY" || {
+            echo "::error::governance/shared is empty or stale — no $SUMMARY."
+            echo "::error::Clone with --recursive, or run:"
+            echo "::error::  git submodule update --init governance/shared"
+            exit 1
+          }
+          PROFILE=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['profile'])" "$SUMMARY")
+          MODULES=governance/shared/$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['paths']['modules'])" "$SUMMARY")
+          test -d "$MODULES" || { echo "::error::the summary names $MODULES, which does not exist"; exit 1; }
+          # WHERE THIS TRACK'S EXECUTION STATE LIVES IS `tracks.<track>.partition`,
+          # NOT `paths.modules`. The v7 layout moved it out of the analysis tree
+          # (analysis/modules/{MOD}/) into a per-track partition
+          # (backend/modules/{MOD}/), and the check below went on globbing the
+          # old shape. It matched nothing, and "nothing" is the one case it
+          # treats as a hard error — so this job failed on every push for a
+          # reason that had nothing to do with the push.
+          PARTITION=governance/shared/$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['tracks'][sys.argv[2]]['partition'])" "$SUMMARY" "$TRACK")
+          echo "profile=$PROFILE"       >> "$GITHUB_ENV"
+          echo "modules=$MODULES"       >> "$GITHUB_ENV"
+          echo "partition=$PARTITION"   >> "$GITHUB_ENV"
+          echo "live profile: $PROFILE · modules at $MODULES · $TRACK partition at $PARTITION"
+
+      - name: The project is pinned by the factory schema this repo's tooling reads
+        # scripts/gov-module.py reads every path and vocabulary from the factory's
+        # published contract (platform/profile-summary.json → consumer); a project
+        # that predates it is said (exit 3), one pinned by another schema fails.
+        run: |
+          rc=0; python3 scripts/gov-module.py --track "$TRACK" pin || rc=$?
+          if [ "$rc" -eq 3 ]; then echo "::warning::the governance project predates factory schema 7 — the factory owner runs gov.py upgrade-project"; exit 0; fi
+          exit $rc
+
+      - name: Every execution-state file holds the contract
+        # channels are lists, every row has its key and a resolution starting with a
+        # declared word, delivery rows carry their fields — the partition's own file
+        # and every version folder's (feedback.versioned)
+        run: |
+          rc=0; python3 scripts/gov-module.py --track "$TRACK" validate || rc=$?
+          if [ "$rc" -eq 3 ]; then echo "::warning::pre-v7 project — execution state not validated"; exit 0; fi
+          exit $rc
+
+      - name: No governance artifact has reappeared outside the submodule
+        # `find`, not a shell glob test: a builtin that is absent, or silently
+        # false, turns a guard into one that always passes — worse than none.
+        run: |
+          found=$(find governance -mindepth 1 -maxdepth 1 \
+                    \( -name modules -o -name modules-registry.json \
+                       -o -name 'GOVERNANCE-RULES.md' -o -name 'api-verify-config.md' \) )
+          if [ -n "$found" ]; then
+            echo "::error::governance came back into this repo: $found"
+            echo "::error::There is one copy, in governance/shared. Two copies drift."
+            exit 1
+          fi

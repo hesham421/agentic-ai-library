@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# governance — the two things this repo does with the shared governance repo.
+#
+#   ./scripts/governance pull    take the factory's latest (start of work)
+#   ./scripts/governance push    publish what THIS repo wrote (end of work)
+#   ./scripts/governance scope   re-narrow the checkout to what this track may read
+#   ./scripts/governance status  where this repo stands
+#
+# It exists because both operations have a silent failure mode:
+#
+#   * `git submodule update` leaves the submodule on a DETACHED HEAD. A commit
+#     made there is referenced by nothing, the next update walks away from it,
+#     and the push that should publish it succeeds publishing nothing.
+#   * a pull that is not followed by a pointer commit leaves this repo dirty in
+#     a way that reads as an accidental change.
+#
+# Neither announces itself. This does.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+SM=governance/shared
+[ -e "$SM/.git" ] || { echo "governance/shared is not initialised."; echo "  git submodule update --init --recursive"; exit 1; }
+
+BRANCH=$(git config -f .gitmodules --get "submodule.$SM.branch" || echo main)
+
+on_branch() {   # the guard: never leave the submodule detached
+  local cur; cur=$(git -C "$SM" rev-parse --abbrev-ref HEAD)
+  if [ "$cur" = "HEAD" ]; then
+    git -C "$SM" checkout -q "$BRANCH"
+    echo "  (was on a detached HEAD — checked out $BRANCH; a commit there would have been lost)"
+  fi
+}
+
+GM="python3 scripts/gov-module.py"
+
+scope() {   # narrow the checkout to what this track may READ
+  # The patterns are the factory's, published in platform/profile-summary.json
+  # (consumer.sparse) and read by scripts/gov-module.py — never kept here. A
+  # submodule hands every consumer the whole repository; this is the only lever
+  # that narrows it, and the wrong tree in front of someone is how six modules'
+  # governance came to be deleted from a frontend session.
+  local pats rc=0
+  pats=$($GM scope 2>/dev/null) || rc=$?
+  if [ "$rc" -eq 3 ]; then
+    echo "  (scope unchanged: the project predates factory schema 7 and publishes no sparse patterns)"; return 0
+  fi
+  [ "$rc" -eq 0 ] && [ -n "$pats" ] || { echo "  (scope unchanged: scripts/gov-module.py scope failed)"; return 0; }
+  echo "$pats" | git -C "$SM" sparse-checkout set --no-cone --stdin
+}
+
+pin() {     # the project is pinned by the factory schema this repo's tooling reads
+  local rc=0
+  $GM pin || rc=$?
+  case "$rc" in
+    0) ;;
+    3) echo "  WARNING: the project predates factory schema 7 — this repo's v7 tooling has nothing to read until the factory owner runs gov.py upgrade-project";;
+    *) echo "  REFUSED: the project's factory schema is not the one this repo's tooling reads — not pinning it"; return 1;;
+  esac
+}
+
+case "${1:-status}" in
+  pull)
+    git submodule update --remote --quiet "$SM"
+    on_branch
+    git -C "$SM" pull -q --ff-only
+    echo "shared @ $(git -C "$SM" log --oneline -1)"
+    pin || { git -C "$SM" checkout -q "$(git ls-tree HEAD "$SM" | awk '{print $3}')"; echo "  submodule returned to the pinned commit"; exit 1; }
+    scope
+    if ! git diff --quiet -- "$SM"; then
+      git add "$SM"
+      git commit -q -m "governance: advance the pinned commit to $(git -C "$SM" rev-parse --short HEAD)"
+      echo "pinned. push this repo when you are ready."
+    else
+      echo "already at that commit — nothing to pin."
+    fi
+    ;;
+  push)
+    on_branch
+    if [ -z "$(git -C "$SM" status --porcelain)" ]; then
+      echo "nothing written in shared."
+    else
+      # only this track's own partition — never the factory's packages inside it,
+      # never another track's tree (scripts/gov-module.py pathspec)
+      SPEC=(); while IFS= read -r l; do SPEC+=("$l"); done < <($GM pathspec)   # bash 3.2 (macOS): no mapfile
+      echo "writing:"; git -C "$SM" status --short -- "${SPEC[@]}" | sed 's/^/  /'
+      git -C "$SM" add -A -- "${SPEC[@]}"
+      left=$(git -C "$SM" status --porcelain | grep -v '^[MADRC] ' | wc -l | tr -d ' ')
+      [ "$left" = "0" ] || echo "  NOT written ($left path(s) outside this track's partition): $(git -C "$SM" status --porcelain | grep -v '^[MADRC] ' | head -5 | tr '\n' ' ')"
+      git -C "$SM" diff --cached --quiet && { echo "nothing of this track's to write."; exit 0; }
+      git -C "$SM" commit -q -m "${2:-backend: execution state and generated docs}"
+      git -C "$SM" push -q
+      echo "pushed shared @ $(git -C "$SM" log --oneline -1)"
+    fi
+    git add "$SM"
+    git diff --cached --quiet -- "$SM" || {
+      git commit -q -m "governance: advance the pinned commit to $(git -C "$SM" rev-parse --short HEAD)"
+      echo "pinned."; }
+    ;;
+  scope)
+    scope
+    echo "checkout narrowed to this track's readable partitions"
+    git -C "$SM" sparse-checkout list 2>/dev/null | sed 's/^/  /'
+    ;;
+  status)
+    on_branch
+    pin || true
+    git -C "$SM" fetch -q origin || true
+    echo "shared    $(git -C "$SM" log --oneline -1)"
+    echo "branch    $(git -C "$SM" rev-parse --abbrev-ref HEAD)"
+    behind=$(git -C "$SM" rev-list --count HEAD..@{u} 2>/dev/null || echo ?)
+    ahead=$(git -C "$SM" rev-list --count @{u}..HEAD 2>/dev/null || echo ?)
+    echo "upstream  behind $behind · ahead $ahead"
+    dirty=$(git -C "$SM" status --porcelain | wc -l | tr -d ' ')
+    echo "uncommitted in shared: $dirty"
+    git diff --quiet -- "$SM" && echo "pointer   committed" || echo "pointer   MOVED but not committed — run './scripts/governance pull' or commit it"
+    ;;
+  *) echo "usage: $0 {pull|push|scope|status}"; exit 2;;
+esac

@@ -1,8 +1,12 @@
 # Reference Repositories
 
-External repositories that inform the design of the Reusable Agentic AI Library. They are
-**references only**: none is copied into this project, and none is a dependency. Do not copy their
-source code. Read them, then design for this library's domain-agnostic, configuration-driven goals.
+External repositories gathered for this repo's earlier "Reusable Agentic AI Library" idea, which
+aias — the Request Verification Service — superseded (domain-profile §2). They are **references
+only**: none is copied into this project, and none is a dependency. Do not copy their source
+code. For aias, only the Spring AI material applies, and only within the profile's limits:
+`ChatModel` / `Prompt` / `ChatOptions` with no provider-specific feature, no model tools, no chat
+memory, no RAG and no multi-agent orchestration (domain-profile G1, G9, G12; scope §1). The
+"library" wording below is the original framing, kept as written.
 
 Information below was gathered on 2026-10-01.
 
@@ -124,15 +128,14 @@ Product logic this library must *not* contain.
 
 ---
 
-## 5. Deferred Tool Candidates
+## 5. Tool Candidates From an Earlier Backend
 
-Tools seen in an internal ERP backend (`System-main-main-main/repos/backend`, commit `33f582a`)
-and deliberately **not** copied on 2026-10-01. Reconsider each one when the matching library
-capability exists.
+Tools seen in an unrelated earlier backend (`System-main-main-main/repos/backend`, commit
+`33f582a`), reviewed on 2026-10-01 against aias.
 
-| Tool | What it is | Why deferred | Revisit when |
-|------|------------|--------------|--------------|
-| Postgres MCP server (`governance/mcp-servers/postgres`) | ~120-line Node MCP server: `query`, `list_tables`, `describe_table` | Hard-wired to `erp_db` and allows writes | JDBC chat memory or pgvector work starts. Rebuild it read-only by default, with credentials from environment variables only |
-| Oracle MCP server (`governance/mcp-servers/oracle`) | Same shape for Oracle (thin mode) | Has literal credentials for a local ERP schema in `.mcp.json`. No Oracle use planned | Only if a Product needs Oracle |
-| `api-doc-generator` (Python) | Generates API docs from a running Spring Boot app's OpenAPI and source | Assumes the ERP `com.erp.common` foundation and per-module `GroupedOpenApi` | The library exposes HTTP endpoints |
-| TestSprite MCP | Third-party AI test runner (`npx @testsprite/testsprite-mcp`) needing an API key | External service, not needed for a library with no endpoints | HTTP adapters exist and an external test service is approved |
+| Tool | What it is | Status for aias |
+|------|------------|-----------------|
+| Postgres MCP server | ~120-line Node MCP server: `query`, `list_tables`, `describe_table` | Not copied. aias uses Oracle 19c, and it allowed writes |
+| Oracle MCP server (thin mode) | Same shape for Oracle | Not copied — it carried literal credentials. The aias host query channel is the Oracle SQLcl MCP server behind the query port (domain-profile D2), configured per environment, read-only |
+| `api-doc-generator` (Python) | Generates API docs from a running Spring Boot app's OpenAPI and source | Copied to `governance/governance-tools/api-doc-generator/`, but **incomplete** (several modules missing) and built for that backend's envelope and authorization conventions — see the banner in its README |
+| TestSprite MCP | Third-party AI test runner (`npx @testsprite/testsprite-mcp`) needing an API key | Not adopted; `governance/testsprite/` keeps a note only. API verification is the `api-verify` skill |
