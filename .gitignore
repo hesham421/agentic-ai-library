@@ -1,0 +1,41 @@
+# Build output
+target/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated/
+.springBeans
+.sts4-cache/
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and local env
+*.log
+.env
+.env.*
+
+# Claude Code: keep .claude/ (skills, references) under version control,
+# but never commit personal/local settings
+.claude/settings.local.json
