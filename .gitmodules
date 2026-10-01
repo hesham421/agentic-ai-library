@@ -1,0 +1,4 @@
+[submodule "governance/shared"]
+	path = governance/shared
+	url = https://github.com/hesham421/aias.git
+	branch = master
