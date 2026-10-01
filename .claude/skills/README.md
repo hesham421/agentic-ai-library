@@ -70,6 +70,43 @@ Licenses: `rynr/spring-skills` is MIT (declared in its README; the repo has no L
 - **Why selected:** It covers the requested database, integration, and Testcontainers testing. JDBC
   chat memory, pgvector, and checkpoint persistence will need real-database tests.
 
+## Local Skills
+
+Written for this project, not pulled from upstream. They use a lane prefix: `gov-*` skills
+**validate only** and never generate or modify code. (A `build-*` lane for code generators is
+reserved and will be added once the library architecture exists.) Upstream skills keep their
+upstream names (`spring-*`).
+
+| Skill | Use when |
+|-------|----------|
+| [`gov-enforce-library-contract`](gov-enforce-library-contract/SKILL.md) | After writing or reviewing any library code. 38 checks across 6 groups. The Product-domain boundary group is unconditional |
+| [`gov-enforce-error-handling`](gov-enforce-error-handling/SKILL.md) | Code that throws, catches, or maps exceptions. 24 checks on error codes, categories, and messages |
+| [`gov-enforce-caching-rules`](gov-enforce-caching-rules/SKILL.md) | Any caching added or proposed. 28 checks against an approved register (empty today) |
+
+**Provenance:** adapted on 2026-10-01 from the `gov-*` skills of an internal ERP backend
+governance pack (`System-main-main-main/repos/backend`, commit `33f582a`). Only general
+engineering principles were kept: framework-free decision logic, orchestration-only services,
+module boundaries, error codes with categories, caching eligibility, and the validate-only report
+format. Everything ERP-specific was removed, including the `AuditableEntity`, `ServiceResult`,
+and `LocalizedException` classes, `SEQUENCE` naming, the CRUD file set, and module codes. AI-specific
+rules were added where the library needs them (no shared caching of per-conversation data; no
+prompts or secrets in exception messages).
+
+**No overlap with upstream skills:** the `gov-*` skills do not restate Spring AI, Spring Boot, or
+testing guidance. They point to `spring-ai`, `spring-boot`, and the `spring-*-testing` skills
+instead.
+
+**Not adopted from that pack, and why:**
+
+| Item | Reason |
+|------|--------|
+| `build-create-entity/-repository/-dto/-mapper/-service/-controller` | ERP CRUD generator built on ERP base classes and per-module database scripts. Contradicts "design before implementation" |
+| `gov-enforce-backend-contract`, `gov-validate-backend-feature` | Their generic rules were folded into `gov-enforce-library-contract`. The rest enforces ERP classes |
+| `api-verify` and commands (`orchestrate-module`, `generate-module-setup`, `generate-api-docs`, `CU/FILE/FIN/MDL/NOTIF/SEC/*`) | Depend on the ERP `governance/shared` submodule and on business modules. That breaks the Product-domain boundary |
+| Tools (MCP servers, `api-doc-generator`, TestSprite) | Recorded as future candidates in [`../references/README.md`](../references/README.md#5-deferred-tool-candidates) |
+
+All three local skills are **Markdown only**: no scripts, hooks, or executables.
+
 ## Considered and Not Installed
 
 | Candidate | Source | Reason |

@@ -143,7 +143,8 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 
 - **Skills** in [`.claude/skills/`](.claude/skills/README.md) give Claude Code current Spring AI,
   Spring Boot 4, and Spring testing guidance. They were selected and security-reviewed for this
-  project.
+  project. Three local `gov-*` skills validate library code against the Product-domain boundary,
+  error-handling, and caching rules. They review code; they never generate it.
 - **References** in [`.claude/references/`](.claude/references/README.md) list the external
   repositories to study (official Spring AI first). Nothing from them is copied into this project.
 - When sources disagree, the official Spring AI 2.0 documentation and this project's `pom.xml` win.

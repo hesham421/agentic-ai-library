@@ -121,3 +121,18 @@ Docs paths are relative to `https://docs.spring.io/spring-ai/reference/`.
 
 **Anti-reference:** Its domain-specific "security posture review" agent is the kind of
 Product logic this library must *not* contain.
+
+---
+
+## 5. Deferred Tool Candidates
+
+Tools seen in an internal ERP backend (`System-main-main-main/repos/backend`, commit `33f582a`)
+and deliberately **not** copied on 2026-10-01. Reconsider each one when the matching library
+capability exists.
+
+| Tool | What it is | Why deferred | Revisit when |
+|------|------------|--------------|--------------|
+| Postgres MCP server (`governance/mcp-servers/postgres`) | ~120-line Node MCP server: `query`, `list_tables`, `describe_table` | Hard-wired to `erp_db` and allows writes | JDBC chat memory or pgvector work starts. Rebuild it read-only by default, with credentials from environment variables only |
+| Oracle MCP server (`governance/mcp-servers/oracle`) | Same shape for Oracle (thin mode) | Has literal credentials for a local ERP schema in `.mcp.json`. No Oracle use planned | Only if a Product needs Oracle |
+| `api-doc-generator` (Python) | Generates API docs from a running Spring Boot app's OpenAPI and source | Assumes the ERP `com.erp.common` foundation and per-module `GroupedOpenApi` | The library exposes HTTP endpoints |
+| TestSprite MCP | Third-party AI test runner (`npx @testsprite/testsprite-mcp`) needing an API key | External service, not needed for a library with no endpoints | HTTP adapters exist and an external test service is approved |
