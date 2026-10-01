@@ -39,3 +39,7 @@ desktop.ini
 # Claude Code: keep .claude/ (skills, references) under version control,
 # but never commit personal/local settings
 .claude/settings.local.json
+
+# Python bytecode caches
+__pycache__/
+*.pyc

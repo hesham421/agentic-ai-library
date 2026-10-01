@@ -31,7 +31,7 @@ on_branch() {   # the guard: never leave the submodule detached
   fi
 }
 
-GM="python3 scripts/gov-module.py"
+GM="python3 scripts/gov-module.py --track ${GOV_TRACK:-backend}"   # this repo is the backend track; its directory name is not
 
 scope() {   # narrow the checkout to what this track may READ
   # The patterns are the factory's, published in platform/profile-summary.json

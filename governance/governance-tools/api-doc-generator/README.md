@@ -1,11 +1,29 @@
 # api-doc-generator
 
-Shared ERP tool that generates frontend-ready API documentation directly from
-an implemented Spring Boot module. It is not built for any specific module —
-it works identically for SEC, CU, NOTIF, FILE and any future module that follows
-this platform's existing conventions (a `GroupedOpenApi` bean per module, a
-shared `com.erp.common` foundation), with no generator change required to
-support a new one. It works under both layouts this platform has used: the
+> **STATUS IN THIS REPO (aias backend) — does not run, does not apply as-is.**
+> This folder is a partial copy of a tool written for an earlier, unrelated
+> backend. Its own modules are missing — `extractors/__init__.py`,
+> `openapi_extractor.py`, `dto_extractor.py`, `validation_extractor.py`,
+> `security_extractor.py`, `response_model_extractor.py`, `sync.py`,
+> `renderers/base.py` — so `generate.py` fails on import. Beyond that, several
+> of its checks assume that backend's conventions, which aias does not have: a
+> response envelope class, method-level authorization annotations and permission
+> codes, a shared `common` source root. aias answers plain JSON, reports errors as
+> RFC 9457 ProblemDetail with `{MOD}-{http}[-{SLUG}]` codes, and has no caller
+> authentication (amendment A2). The parts that do carry over are the contract
+> join (`extractors/contract_extractor.py`: stamping served endpoints with the
+> `x-api-id` of the module's API document and reporting drift) and the v7
+> discovery of the module's plan and API document through `scripts/gov-module.py`
+> (`discovery.py` already passes `--track backend`).
+> Until a complete copy is adapted to aias, `/generate-api-docs` stops and says
+> so. The rest of this README documents the original tool and is kept as its
+> reference, unedited.
+
+A tool that generates frontend-ready API documentation directly from
+an implemented Spring Boot module. In its original backend it worked
+identically for every module that followed that platform's conventions (a
+`GroupedOpenApi` bean per module, a shared `common` foundation), with no
+generator change required to support a new one. It works under both layouts this platform has used: the
 single consolidated POM it builds as today, and a multi-module Maven reactor. **The
 implemented backend is the only source of truth** for what the docs say; the one
 governance input is the module's declared contract (its API document,

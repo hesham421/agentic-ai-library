@@ -39,7 +39,7 @@ and names the flag to pass.
 ## Step 0 — the contract comes from one tool (never typed)
 
 ```bash
-export GOV_TRACK=backend                          # scripts/governance and the generator call gov-module.py without --track
+export GOV_TRACK=backend                          # scripts/governance calls gov-module.py without --track (the generator passes it itself)
 ./scripts/governance pull                         # start of work
 python3 scripts/gov-module.py --track backend pin                 # 0 = schema 7 · 3 = pre-v7 · 1 = refused
 python3 scripts/gov-module.py --track backend plan $MODULE --json # api_spec, api_docs, delivered_version, …

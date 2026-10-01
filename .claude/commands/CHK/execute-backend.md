@@ -19,10 +19,10 @@ when its listed tests are green.
 ```bash
 export GOV_TRACK=backend
 ./scripts/governance pull
-python3 scripts/gov-module.py pin            # exit 3 → STOP: "the factory owner runs gov.py upgrade-project"
-python3 scripts/gov-module.py plan CHK --json
-python3 scripts/gov-module.py state-init CHK
-python3 scripts/gov-module.py delivery CHK
+python3 scripts/gov-module.py --track backend pin            # exit 3 → STOP: "the factory owner runs gov.py upgrade-project"
+python3 scripts/gov-module.py --track backend plan CHK --json
+python3 scripts/gov-module.py --track backend state-init CHK
+python3 scripts/gov-module.py --track backend delivery CHK
 ```
 
 - `plan.delivered_version` must be 1 (the version this command was generated
@@ -136,8 +136,8 @@ execute it with the same skill / test discipline, then
 
 ```bash
 export GOV_TRACK=backend
-python3 scripts/gov-module.py delivery CHK
-python3 scripts/gov-module.py validate CHK
+python3 scripts/gov-module.py --track backend delivery CHK
+python3 scripts/gov-module.py --track backend validate CHK
 ./scripts/governance push
 ```
 

@@ -13,11 +13,27 @@ jobs:
   shared:
     runs-on: ubuntu-latest
     env:
-      TRACK: backend   # this repo's track — the ONE place it is named
+      TRACK: backend       # this repo's track — the ONE place it is named
+      GOV_TRACK: backend   # the same, for any gov-module.py call without --track: this repo's
+                           # directory is agentic-ai-library, not `backend`, so the tool cannot
+                           # infer the track from it
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          # governance/shared is the aias governance project (.gitmodules). If that repository
+          # is private, store a read token as GOV_SHARED_TOKEN; github.token reads only this repo.
+          token: ${{ secrets.GOV_SHARED_TOKEN || github.token }}
+
+      - name: The submodule is declared where this repo's tooling reads it
+        # scripts/governance takes the branch from .gitmodules (falling back to `main`);
+        # the aias project publishes on `master`, so an absent branch line pulls the wrong one.
+        run: |
+          path=$(git config -f .gitmodules --get submodule.governance/shared.path || true)
+          branch=$(git config -f .gitmodules --get submodule.governance/shared.branch || true)
+          test "$path" = "governance/shared" || { echo "::error::.gitmodules declares no governance/shared submodule"; exit 1; }
+          test -n "$branch" || { echo "::error::.gitmodules declares no branch for governance/shared (the project publishes on master)"; exit 1; }
+          echo "governance/shared → $(git config -f .gitmodules --get submodule.governance/shared.url) @ $branch, pinned $(git -C governance/shared rev-parse --short HEAD)"
 
       - name: The shared submodule is initialised, and says which profile is live
         # The profile folder name is NOT spelled here: it is whatever the factory

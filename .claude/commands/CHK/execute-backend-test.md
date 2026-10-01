@@ -24,9 +24,9 @@ API document (`api-verify`).
 ### 0.1 — Load
 ```bash
 export GOV_TRACK=backend
-python3 scripts/gov-module.py pin              # exit 3 → STOP: "the factory owner runs gov.py upgrade-project"
-python3 scripts/gov-module.py plan CHK --json
-python3 scripts/gov-module.py delivery CHK
+python3 scripts/gov-module.py --track backend pin              # exit 3 → STOP: "the factory owner runs gov.py upgrade-project"
+python3 scripts/gov-module.py --track backend plan CHK --json
+python3 scripts/gov-module.py --track backend delivery CHK
 ```
 `plan.delivered_version` must be 1; if it differs, STOP and re-run
 `/generate-module-setup CHK`.
@@ -121,8 +121,8 @@ Report and STOP on any FAIL or GAP — this command never fixes source.
 ## STEP 6 — End of work
 ```bash
 export GOV_TRACK=backend
-python3 scripts/gov-module.py delivery CHK
-python3 scripts/gov-module.py validate CHK
+python3 scripts/gov-module.py --track backend delivery CHK
+python3 scripts/gov-module.py --track backend validate CHK
 ./scripts/governance push
 ```
 
