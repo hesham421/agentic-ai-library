@@ -1,0 +1,25 @@
+{
+  "_comment": [
+    "Local Oracle MCP server, copied from the backend project's governance/mcp-servers/oracle.",
+    "Talks to the local throwaway test database LOAN_SYS@localhost:1521/FREEPDB1 (the erp-oracle container)",
+    "through node-oracledb thin mode. READ-ONLY here (SELECT / WITH, enforced by SET TRANSACTION READ ONLY):",
+    "schema changes go through Flyway, never through this server. Run `npm install` once in governance/mcp-servers/oracle.",
+    "Export ORACLE_PASSWORD (the local test schema's password) in your shell before starting Claude Code; it is never stored in this file."
+  ],
+  "mcpServers": {
+    "oracle": {
+      "command": "node",
+      "args": [
+        "governance/mcp-servers/oracle/index.js"
+      ],
+      "env": {
+        "ORACLE_HOST": "localhost",
+        "ORACLE_PORT": "1521",
+        "ORACLE_SERVICE": "FREEPDB1",
+        "ORACLE_USER": "${ORACLE_USER:-LOAN_SYS}",
+        "ORACLE_PASSWORD": "${ORACLE_PASSWORD}",
+        "ORACLE_ALLOW_WRITE": "false"
+      }
+    }
+  }
+}

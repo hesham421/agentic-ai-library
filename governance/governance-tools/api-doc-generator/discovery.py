@@ -93,10 +93,31 @@ class RepositoryContext:
     # column is rendered.
     message_bundles: list[Path] = field(default_factory=list)
     message_basename: Optional[str] = None
+    # Project conventions the source alone cannot state (conventions.json beside
+    # this file; see load_conventions). Empty = the original generator's defaults.
+    conventions: dict = field(default_factory=dict)
 
 
 def default_backend_root() -> Path:
     return BACKEND_ROOT
+
+
+CONVENTIONS_FILE = GENERATOR_ROOT / "conventions.json"
+
+
+def load_conventions(path: Path = CONVENTIONS_FILE) -> dict:
+    """The project's conventions file (aias adaptation): which classes hold error
+    codes (`error_code_classes`, globs; default *ErrorCodes.java), the pattern a
+    code value carries its HTTP status in (`code_carries_http_status`, group 1 =
+    the status), and the caller-authentication model (`authentication`: "none"
+    = the application declares no caller authentication, so an endpoint whose
+    OpenAPI operation states no security requirement is documented as not
+    requiring any). Absent file or key = the original behaviour; keys starting
+    with "_" are comments."""
+    if not path.is_file():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
 @lru_cache(maxsize=1)
@@ -704,6 +725,7 @@ def resolve(
             source_root=source_override,
             common_source_roots=common_source_overrides or [],
             **contract,
+            conventions=load_conventions(),
         )
 
     if not backend_root.exists():
@@ -714,7 +736,7 @@ def resolve(
             )
         return RepositoryContext(module=module, openapi_source=openapi_override, output=output,
                                source_root=source_override, common_source_roots=common_source_overrides or [],
-                               **contract)
+                               **contract, conventions=load_conventions())
 
     groups = find_openapi_groups(backend_root)
     matched = match_openapi_group(groups, module)
@@ -748,4 +770,5 @@ def resolve(
         migration_roots=find_migration_roots(backend_root),
         message_bundles=message_bundles,
         message_basename=message_basename,
+        conventions=load_conventions(),
     )

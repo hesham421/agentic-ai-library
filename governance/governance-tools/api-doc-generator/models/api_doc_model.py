@@ -197,6 +197,10 @@ class ErrorCode:
     # table (e.g. "409 CONFLICT"). Either may be absent independently.
     status: Optional[str] = None
     http_status: Optional[str] = None
+    # aias adaptation: True when http_status was read from the code's own value
+    # ({MOD}-{http}[-{SLUG}], conventions.json -> code_carries_http_status) --
+    # a module code, never a framework handler's code.
+    http_from_value: bool = False
     # Populated only by business_error_extractor: every Class.method in the
     # module's source that names this code at a throw site, and how many
     # endpoints' walks reached one of them. 0 with sites = unbound.

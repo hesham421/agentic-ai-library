@@ -44,9 +44,8 @@ generated script by hand.
 ## When NOT to Use
 
 - Before the module's api-docs exist or are stale — regenerate them first
-  (`/generate-api-docs`); a stale doc produces a script that tests the wrong surface. While the
-  api-doc-generator copy in this repo cannot run (see `/generate-api-docs`), there are no
-  api-docs: STOP and say so
+  (`/generate-api-docs`); a stale doc produces a script that tests the wrong surface. A module
+  with no generated api-docs (no `<PART>api-docs/index.md`): STOP and say so
 - Without an API document (`plan.api_spec` missing — a pre-v7 project): there is no contract to
   hold the docs to; STOP and say so
 - As a substitute for `gov-enforce-backend-contract` / `gov-enforce-library-contract` — those

@@ -1,23 +1,67 @@
 # api-doc-generator
 
-> **STATUS IN THIS REPO (aias backend) — does not run, does not apply as-is.**
-> This folder is a partial copy of a tool written for an earlier, unrelated
-> backend. Its own modules are missing — `extractors/__init__.py`,
-> `openapi_extractor.py`, `dto_extractor.py`, `validation_extractor.py`,
-> `security_extractor.py`, `response_model_extractor.py`, `sync.py`,
-> `renderers/base.py` — so `generate.py` fails on import. Beyond that, several
-> of its checks assume that backend's conventions, which aias does not have: a
-> response envelope class, method-level authorization annotations and permission
-> codes, a shared `common` source root. aias answers plain JSON, reports errors as
-> RFC 9457 ProblemDetail with `{MOD}-{http}[-{SLUG}]` codes, and has no caller
-> authentication (amendment A2). The parts that do carry over are the contract
-> join (`extractors/contract_extractor.py`: stamping served endpoints with the
-> `x-api-id` of the module's API document and reporting drift) and the v7
-> discovery of the module's plan and API document through `scripts/gov-module.py`
-> (`discovery.py` already passes `--track backend`).
-> Until a complete copy is adapted to aias, `/generate-api-docs` stops and says
-> so. The rest of this README documents the original tool and is kept as its
-> reference, unedited.
+> **STATUS IN THIS REPO (aias backend) — runs.** Completed 2026-10-02 from the
+> ERP backend's copy (`extractors/*` but `contract_extractor.py`,
+> `models/__init__.py`, `renderers/__init__.py`, `renderers/base.py`, `sync.py`,
+> `tests/*` were copied in; every other file both copies held was byte-identical, so
+> none was overwritten) and adapted to aias as described in **aias adaptation**
+> below. Run it through `/generate-api-docs <MOD>` against the running app
+> (springdoc `springdoc-openapi-starter-webmvc-api`, one group per module). The
+> rest of this README documents the original tool and is kept as its reference.
+
+## aias adaptation
+
+The project facts the source alone cannot state live in **`conventions.json`**
+beside `generate.py`, read by `discovery.load_conventions()` into
+`RepositoryContext.conventions`. An absent file or key keeps the original
+generator's behaviour, so nothing below is hard-coded to aias.
+
+| Key | aias value | Effect |
+|---|---|---|
+| `error_code_classes` | `*ErrorCodes.java`, `*RejectionCodes.java`, `*RefusalCodes.java` | the classes `exception_extractor.find_error_codes` reads a module's codes from (its `error-catalog` codes plus the in-process contract rejection/refusal codes); also the classes whose constants count at a throw site |
+| `code_carries_http_status` | `^[A-Z]+-([1-5][0-9]{2})(?:-[A-Z0-9-]+)?$` | a code value `{MOD}-{http}[-{SLUG}]` states its own HTTP status (aias has no `Status` enum / Status→HTTP table); `error_mapping_extractor.enrich_error_codes` fills `http_status` from it and marks the code `http_from_value`, so it is never mistaken for a framework handler's code |
+| `authentication` | `none` | no caller authentication (amendment A2): an endpoint whose OpenAPI operation states no security requirement is documented "Not required.", and `auth-determined` passes when no `SecurityFilterChain` exists in source |
+
+Code changes that go with it (all small, each commented "aias adaptation"):
+
+- **Throw form.** aias raises `new <Module>Exception(<Module>ErrorCodes.X, …)` or,
+  in a typed contract exception, `super(<…>Codes.X, …)` — a code constant and no
+  `Status`. `error_mapping_extractor.code_argument_throw_re` recognises that form
+  (built from `error_code_classes`); `business_error_extractor._throws_in` binds it
+  and takes the HTTP status from the code's registered value.
+- **Error-code messages** come from `messages.properties` (`spring.messages.basename`
+  default), keyed by code value — the original message-bundle extractor, unchanged.
+- **Module source root / groups.** `io.agenticai.platform.config.OpenApiGroupsConfiguration`
+  declares one `GroupedOpenApi` per module — groups `reg`, `doc`, `chk`, `rpt`, `int`
+  (bean methods `regApi` … `intApi`, display names `REG` … `INT`), scanning
+  `io.agenticai.reg|doc|chk|rpt|integration`. Discovery matches `--module` to the
+  group whose method/group id/display name contains the module code, and the
+  module's source root is the scanned package (`src/main/java/io/agenticai/<pkg>`,
+  INT at `integration`). The consolidated POM makes the "common" root the whole
+  `src/main/java` tree, as on the original backend.
+- **Port.** Discovery reads `server.port` from `application*.properties`; the
+  `local` profile declares `server.port=7271`.
+- **Checks needing no change.** `envelope`, `status-table` and `field-error-semantics`
+  are already source-conditional: aias declares no `ApiResponse` class, no `Status`
+  enum and no `GlobalExceptionHandler`, so they report N/A rather than FAIL.
+  `permissions` passes with "declared none" (no `@PreAuthorize`/`@Secured`).
+- **Known limitation.** A module's `@RestControllerAdvice` catch-all
+  (`@ExceptionHandler(Exception.class)` → `{MOD}-500`) is not attributed to every
+  endpoint; the code is bound only where a walked method throws it. The API
+  document remains the contract for the error codes `api-verify` asserts.
+- **INT needs no module→package map.** Module `INT` resolves to
+  `src/main/java/io/agenticai/integration` through the `int` group's
+  `packagesToScan` (above), so `conventions.json` carries no package map.
+- **Known limitation — pass-through codes (INT).** INT's error-catalog declares
+  PASS-THROUGH codes of CHK/DOC/RPT (`CHK-404-CHECK-NOT-FOUND`,
+  `RPT-409-DECISION-ALREADY-RECORDED`, …) raised by those modules' in-process
+  contract exceptions and answered by `IntegrationProblemAdvice`. The generator
+  reads only the module's own `*ErrorCodes.java` and binds codes by walking its
+  own call graph, so these codes appear neither in INT's "Known Error Codes" nor
+  in its endpoints' Business Responses (7 of INT's 8 endpoints show "None
+  reached"). Likewise codes thrown only from INT adapters or the advice
+  (`INT-502/504` approval API, `INT-413`, `INT-500`) are listed as unbound.
+  `api-spec-int.yaml` is the source `api-verify` asserts for them.
 
 A tool that generates frontend-ready API documentation directly from
 an implemented Spring Boot module. In its original backend it worked

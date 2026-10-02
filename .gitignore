@@ -43,3 +43,13 @@ desktop.ini
 # Python bytecode caches
 __pycache__/
 *.pyc
+
+# Node dependencies of local MCP servers
+node_modules/
+
+# Local-only runtime data (profile "local": package directory etc.)
+local/
+logs/
+
+# Local throwaway-DB profile (holds local credentials) — copy from application-local.properties.example
+src/main/resources/application-local.properties

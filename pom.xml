@@ -23,8 +23,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- Spring AI 2.0.1 is built and tested against Spring Boot 4.1.1 (see README "Compatibility") -->
         <spring-ai.version>2.0.1</spring-ai.version>
-        <!-- Placeholder so @{argLine} resolves when no other plugin (e.g. JaCoCo) sets it -->
-        <argLine></argLine>
+        <!-- DOC document readers (PORTS-DOCUMENT): neither library is managed by the Boot BOM -->
+        <pdfbox.version>3.0.8</pdfbox.version>
+        <poi.version>5.5.1</poi.version>
+        <!-- springdoc 3.1.x is the line built on Spring Boot 4.1 / Framework 7 (3.1.1's parent is Boot 4.1.0;
+             2.8.x/2.9.x target Boot 3.x). API document only, no UI: read by the api-doc generator. -->
+        <springdoc.version>3.1.1</springdoc.version>
     </properties>
 
     <dependencyManagement>
@@ -45,12 +49,85 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- The running app's OpenAPI document (/v3/api-docs, one GroupedOpenApi group per module —
+             io.agenticai.platform.config.OpenApiGroupsConfiguration), read by
+             governance/governance-tools/api-doc-generator to publish each module's api-docs. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+        <!-- Oracle 19c is the dialect of every module's db-script; the schema is environment-provided -->
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Schema migrations: each module's db-script sql fence, applied verbatim from
+             src/main/resources/db/migration (V1 REG, V2 DOC, V3 CHK, V4 RPT). Versions from the Boot parent. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-oracle</artifactId>
+        </dependency>
+        <!-- DOC PORTS-DOCUMENT readers: PDF text extraction (PdfTextReader, REQ-DOC-025) and
+             spreadsheet table extraction, HSSF (.xls) + XSSF (.xlsx) (SpreadsheetTableReader, REQ-DOC-026) -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
+            <exclusions>
+                <!-- Spring's spring-jcl already provides the commons-logging API; two copies on
+                     the classpath would shadow each other -->
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <!-- DOC PORTS-MODEL: the document-reading model (DocumentReadingModelPort, REQ-DOC-027/030/032).
+             v1 supports ONE provider through Spring AI's OpenAI-compatible API — local and free-tier
+             gateways are reached by base URL; the go-live provider is decided later (domain-profile D3).
+             The only provider-bound code is the single ChatModel bean in doc.config; every other class
+             sees the provider-neutral ChatModel / Prompt / Media API (G12). Version from spring-ai-bom. -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+        <!-- Platform MCP query channel (io.agenticai.platform.mcp.SpringAiMcpQueryChannel, PORTS-QUERY): the Spring AI
+             MCP CLIENT calling a connection's query tool behind the DOC/CHK query ports. Never a model tool (G1): the
+             MCP→ToolCallback bridge is switched off (spring.ai.mcp.client.toolcallback.enabled=false in
+             application.properties). Version from spring-ai-bom. -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -77,25 +154,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <!-- Attach Mockito as a Java agent: dynamic self-attach is deprecated on JDK 21+ -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>properties</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

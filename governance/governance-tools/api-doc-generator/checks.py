@@ -162,6 +162,12 @@ def run_checks(context, document: ApiDocument, files: dict[str, str], files_agai
             f"{_ratio(0, n, 'endpoints carry an OpenAPI security requirement')}; a SecurityFilterChain is declared in "
             f"source ({chains} file(s)) → the OpenAPI document declares no SecurityScheme/SecurityRequirement "
             f"(backend: OpenApiConfig)"))
+    elif (getattr(context, "conventions", None) or {}).get("authentication") == "none" and not chains:
+        # aias adaptation: no SecurityFilterChain in source and conventions.json declares no
+        # caller authentication, so "not required" is determined without an OpenAPI requirement.
+        results.append(CheckResult("auth-determined", PASS,
+                                   f"{_ratio(determined, n, 'endpoints determined')}: no caller authentication "
+                                   f"(conventions.json authentication=none; no SecurityFilterChain in source)"))
     else:
         results.append(CheckResult("auth-determined", PASS if determined or not chains else NA,
                                    f"{_ratio(determined, n, 'endpoints carry an OpenAPI security requirement')}"))

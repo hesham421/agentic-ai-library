@@ -6,7 +6,9 @@ API document (`api-verify`).
 > **Self-contained.** Needs `scripts/gov-module.py`,
 > `governance/governance-tools/api-doc-generator`, the `api-verify` skill
 > (`.claude/skills/api-verify/SKILL.md`) and this module's artifacts as
-> `gov-module.py plan DOC --json` names them. Never TestSprite (retired).
+> `gov-module.py plan DOC --json` names them, plus the api-verify script
+> generator `governance/governance-tools/api-verify-generator/build.py`.
+> Never TestSprite (retired). No JUnit — the test phase IS api-verify.
 
 > **Track.** This repo's folder name is not a track name, so every
 > `scripts/gov-module.py` and `./scripts/governance` call in this command runs
@@ -51,16 +53,25 @@ STOP.
 
 ---
 
-## STEP 1 — Test packages
+## STEP 1 — Test packages (REQUIRED COVERAGE, exercised by api-verify)
 
-For each `plan.test_units` entry in the Test Map below (skipping the integration
-test phase's units — their tests belong to the integration packages): read its
-`.md` (`file`), implement every `TC` block it holds as a test tagged with the TC
-id (JUnit/integration test under `src/test/java`), run them, and record:
+No JUnit (user decision 2026-10-02): this repo keeps no `src/test/java` tests.
+The `TC` blocks of each `plan.test_units` entry in the Test Map below (skipping
+the integration test phase's units — their tests belong to the integration
+packages) are the REQUIRED COVERAGE that the `api-verify` script (STEP 3)
+exercises, each check tagged with its TC id. Read every unit's `.md` (`file`)
+so each TC is mapped to a script check; `MODEL-EVAL` is the fixed known-result
+request set run on every model change — synthetic or anonymised data only, G13.
+
+After the STEP 3 run, record each test unit's `package` row from that run's
+per-TC results:
 ```bash
 GOV_TRACK=backend python3 scripts/gov-module.py record DOC package <UNIT> --passed <N> --failed <N>
 ```
-`N` counts the TC blocks of the unit's `.md` plus its manifest's `tests`.
+`--passed` / `--failed` count the TCs the unit holds that the script exercised
+and that passed / failed. A TC the script cannot exercise over HTTP is listed
+as not-exercisable in the problems report (`test-api/`) — never counted as
+passed, and it shows as a GAP in STEP 4.
 
 ## STEP 2 — Publish the api-docs (MANDATORY, every run, before api-verify)
 
@@ -71,15 +82,24 @@ Confirm `index.md` was written before STEP 3.
 
 ## STEP 3 — api-verify
 
-Confirm the app is reachable (`/actuator/health` on the port in
-`src/main/resources/application.properties`; unreachable → `ENVIRONMENT_FAILURE`, stop).
+Confirm the app is reachable (`GET /api/v1/services` — no Actuator on the classpath, `/actuator/health` is 404 — on the port in
+`src/main/resources/application-local.properties`; unreachable → `ENVIRONMENT_FAILURE`, stop).
 Invoke the `api-verify` skill for DOC. It reads the api-docs (STEP 2) and
 `plan.api_spec`, writes its script and problems report under
 `governance/shared/backend/modules/DOC/test-api/`, runs the script, and
-records the result:
+records the result (then STEP 1's per-unit `package` rows):
 ```bash
 GOV_TRACK=backend python3 scripts/gov-module.py record DOC api_verify --version <plan.delivered_version> --result PASS|FAIL
 ```
+The script is built by the persisted generator — never hand-edited:
+```bash
+python3 governance/governance-tools/api-verify-generator/build.py DOC
+# → governance/shared/backend/modules/DOC/test-api/test_doc_apis.py
+```
+Local run facts: the app runs with `--spring.profiles.active=local`, on the
+`server.port` of `src/main/resources/application-local.properties`; point the
+script and the health check at that port.
+
 `PASS` only when the script exits zero. The frontend's delivery of this version
 stays OPEN until this row is PASS.
 
@@ -141,6 +161,8 @@ In `backend-test/index.md` order.
 - NEVER run before the gate (0.2) passes
 - NEVER run api-verify before this run's api-docs were regenerated and published
 - NEVER call TestSprite
+- NEVER write JUnit / `src/test/java` tests — the TC blocks are exercised by the api-verify script
+- NEVER count a not-exercisable TC as passed
 - NEVER modify application source — report, don't fix
 - NEVER hand-edit a generated `test-api` script — regenerate it
 - ALWAYS record every package row and the `api_verify` row through `gov-module.py record`

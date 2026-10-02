@@ -10,16 +10,17 @@ Writes to  : governance/shared/backend/modules/<MOD>/api-docs/ — this track's
 Contract   : the module's API document, `gov-module.py --track backend plan <MOD> --json → api_spec`
 ```
 
-> **STATUS — the generator cannot run in this repo yet.** The copy under
-> `governance/governance-tools/api-doc-generator/` is incomplete: `generate.py`
-> fails on import (`security_extractor`, `sync`, the OpenAPI/DTO/validation
-> extractors and `renderers/base.py` are missing), and several of its checks
-> assume a different backend's conventions (a response envelope, method-level
-> authorization annotations, a `common` source root). aias has none of those:
-> responses are plain JSON, errors are ProblemDetail, and there is no caller
-> authentication (amendment A2). Until a complete generator adapted to aias is in
-> place, this command STOPS at Step 0 with that message — never hand-write
-> api-docs in its place. The steps below describe the intended flow.
+> **STATUS — the generator runs in this repo** (completed and adapted to aias on
+> 2026-10-02; see the generator README's "aias adaptation"). The running app
+> serves its OpenAPI through springdoc (`springdoc-openapi-starter-webmvc-api`),
+> one group per module — `reg`, `doc`, `chk`, `rpt`, `int`
+> (`io.agenticai.platform.config.OpenApiGroupsConfiguration`) — at
+> `/v3/api-docs/<group>`. Start the app first (local: `java -jar target/*.jar
+> --spring.profiles.active=local`, port 7271 from `application-local.properties`),
+> then run the steps below. aias conventions — plain JSON responses, ProblemDetail
+> errors whose `code` value `{MOD}-{http}[-{SLUG}]` carries its HTTP status, no
+> caller authentication (amendment A2) — are declared in the generator's
+> `conventions.json`, not passed as flags.
 
 (Re)generates a module's API documentation from the **running backend**, so
 the frontend and the `api-verify` skill read documentation that matches the
@@ -68,9 +69,9 @@ refuses: `jq -r '.modules | keys[]' governance/shared/platform/modules-registry.
 — never invent a code.
 
 **Backend running:** the Spring Boot app must be up and `/v3/api-docs/<group>`
-must answer for this module (springdoc is not on the classpath yet — the module's
-packages decide whether and how it is added). The generator reads the real port from
-`src/main/resources/application.properties` — never assume `8080`.
+must answer for this module (springdoc is on the classpath; the group is declared in
+`OpenApiGroupsConfiguration`). The generator reads the real port from
+`src/main/resources/application*.properties` (`server.port`) — never assume `8080`.
 
 ## Your Task
 

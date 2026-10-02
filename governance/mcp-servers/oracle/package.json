@@ -1,0 +1,12 @@
+{
+  "name": "erp-oracle-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local MCP server exposing an Oracle database (LOAN_SYS @ FREEPDB1) to Claude Code",
+  "main": "index.js",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "oracledb": "^6.9.0"
+  }
+}

@@ -55,6 +55,16 @@ def build_document(context: RepositoryContext):
     openapi = openapi_extractor.load_openapi(context.openapi_source)
 
     document = openapi_extractor.build_document(openapi, context.module)
+    conventions = context.conventions or {}
+    code_classes = tuple(conventions.get("error_code_classes") or exception_extractor.DEFAULT_CODE_CLASSES)
+    business_error_extractor.configure_code_classes(code_classes)
+    if conventions.get("authentication") == "none" and not document.security_schemes:
+        # aias adaptation: the application declares no caller authentication
+        # (conventions.json), and the OpenAPI document no security requirement,
+        # so "none required" is a fact here, not an undetermined one.
+        for ep in document.endpoints:
+            if ep.requires_auth is None:
+                ep.requires_auth = False
     document.response_envelope = response_model_extractor.find_envelope(openapi)
 
     page_schema_name, page_fields = dto_extractor.find_page_envelope(openapi)
@@ -65,7 +75,7 @@ def build_document(context: RepositoryContext):
     controller_of: dict[int, tuple[str, str]] = {}
     classes: dict = {}
     if source_root is not None:
-        document.error_codes = exception_extractor.find_error_codes(source_root)
+        document.error_codes = exception_extractor.find_error_codes(source_root, code_classes)
         document.source_facts["auth_annotations"] = security_extractor.count_authorization_annotations(source_root)
         classes = business_error_extractor.index_module_source(source_root)
         document.access_denied_overrides = business_error_extractor.find_access_denied_overrides(classes)
@@ -90,7 +100,8 @@ def build_document(context: RepositoryContext):
     if context.common_source_roots:
         status_http = error_mapping_extractor.find_status_http_mapping(context.common_source_roots)
         document.error_codes, document.status_mappings = error_mapping_extractor.enrich_error_codes(
-            document.error_codes, source_root, context.common_source_roots
+            document.error_codes, source_root, context.common_source_roots,
+            code_status_pattern=conventions.get("code_carries_http_status"),
         )
         document.common_headers = common_headers_extractor.find_common_headers(context.common_source_roots)
         document.auth_entry_point = error_mapping_extractor.find_auth_entry_point(context.common_source_roots)
