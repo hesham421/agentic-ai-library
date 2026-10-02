@@ -1,0 +1,356 @@
+{
+  "runId": "20261002T121130Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-02",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 2,
+    "reading": 1
+  },
+  "quotaHit": "the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er",
+  "groups": {
+    "approval": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 1,
+      "ambiguous": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "approval",
+      "name": "Approval API: refusals before any call on an approval-enabled service",
+      "tcs": [
+        "TC-INT-016",
+        "TC-INT-017"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.6,
+      "checksCreated": [
+        128
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-approval -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED on a non-completed Check -> 409, before any call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED without decidedBy -> 400, before any call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the stub received no call",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "approval",
+      "name": "Approval API: 500 -> INT-502, slow -> INT-504 (nothing recorded), ok -> executed, then 409",
+      "tcs": [
+        "TC-INT-019",
+        "TC-INT-020",
+        "TC-INT-037",
+        "TC-INT-038",
+        "TC-INT-040",
+        "TC-INT-041",
+        "TC-INT-042",
+        "TC-INT-043",
+        "TC-INT-018",
+        "TC-INT-039"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 34.4,
+      "checksCreated": [
+        129
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-approval -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript-pass.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 129 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub mode 500",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub 500 -> 502 INT-502-APPROVAL-API-FAILED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "exactly one call, never retried (POST /requests/E2E%2F20261002T121130Z%20APR1/approve)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no decision recorded after the failed call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub mode slow",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub slow -> 504 INT-504-APPROVAL-API-TIMED-OUT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "answered after the approval timeout, not the stub delay (2.1s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no decision recorded after the timeout",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub mode ok",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub ok -> APPROVED 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "approvalApiExecuted=true",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "stub saw POST /requests/E2E%2F20261002T121130Z%20APR1/approve",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "JSON body {checkId, decidedBy}",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "second APPROVED -> 409 before any call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no stub call for the refused second decision",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "report: decision executed",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "approval",
+      "name": "Approval API: a REJECTED decision never calls the Approval API",
+      "tcs": [
+        "TC-INT-013"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 130 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 48.6,
+      "checksCreated": [
+        130
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-approval -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript.png -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [],
+  "survivingRecords": [
+    {
+      "checkId": 128,
+      "serviceCode": "demo-approval",
+      "requestNumber": "E2E-20261002T121130Z-APR-WAIT-aebcf2",
+      "what": "started by 'Approval API: refusals before any call on an approval-enabled service'"
+    },
+    {
+      "checkId": 129,
+      "serviceCode": "demo-approval",
+      "requestNumber": "E2E/20261002T121130Z APR1",
+      "what": "started by 'Approval API: 500 -> INT-502, slow -> INT-504 (nothing recorded), ok -> executed, then 409'"
+    },
+    {
+      "checkId": 130,
+      "serviceCode": "demo-approval",
+      "requestNumber": "E2E-20261002T121130Z-PNG",
+      "what": "started by 'Approval API: a REJECTED decision never calls the Approval API'"
+    }
+  ]
+}
