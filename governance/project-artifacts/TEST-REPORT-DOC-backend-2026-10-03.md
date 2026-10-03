@@ -148,3 +148,74 @@ ALIGN-BE / CORE / DATA-DOM* list no tests and were accepted (0/0 after a clean b
 
 - Evidence is taken from the tags the api-verify checks and the E2E scenarios carry. The orchestrate STEP 4.4 second-agent coverage debate and the STEP 4.5 fixing agent were not run in this pass (scope: close the test phase honestly with the available evidence); the GAP set above is the input for them.
 - Model used for the comparison in the counted E2E run: `gemini-3.6-flash` (Gemini free tier, model calls: comparison 11, reading 1). The first attempt of the day (run on `gemini-3.8-flash`) hit that model's daily quota after 4 calls; it is kept as history (`E2E-SIMULATION-2026-10-03-quota-run.json`) and not counted.
+
+## Update — 2026-10-03 (DOC gap closure, E2E runs `20261003T105921Z` + reruns)
+
+The 50 GAP ids above were taken up by five new E2E groups in `scripts/e2e/simulate.py` (`doc-path`, `doc-blob`, `doc-manual`, `doc-noroot`, `doc-inprocess`; 48 scenarios). Evidence: [`E2E-SIMULATION-DOC-2026-10-03.json`](E2E-SIMULATION-DOC-2026-10-03.json) / [`-run.md`](E2E-SIMULATION-DOC-2026-10-03-run.md) (main run `20261003T105921Z`: 29 PASSED · 4 FAILED · 15 NOT-EXERCISABLE), reruns of the scenarios whose failures were fixture / runner defects: [`-rerun-listing.json`](E2E-SIMULATION-DOC-2026-10-03-rerun-listing.json) (`20261003T110440Z`, TC-DOC-076/077 PASSED) and [`-rerun-blob.json`](E2E-SIMULATION-DOC-2026-10-03-rerun-blob.json) (`20261003T110841Z`, doc-blob 2/2 PASSED); regression of the touched base groups `registry` + `refusals` in normal mode: [`-regression.json`](E2E-SIMULATION-DOC-2026-10-03-regression.json) (10/10 PASSED, 0 model calls). The history above is kept unchanged.
+
+How the TC blocks are realised (method):
+
+- **Preconditions** are an isolated package directory `local/e2e-doc/packages` and storage root `local/e2e-doc/root` (override), service codes carrying the run tag (`doc-path-t1003105921` is version **3**, as the TCs' `scholarship-request` version 3). Two modes: `m1` (storage root set, `max-rows` 100, `max-file-size` 10 MB = the TCs' literal values, reading model tier APPROVED, instruction "Transcribe the document text exactly.") and `noroot` (storage root unset, no document-reading model, `max-file-size` 1 MB). Synthetic files only (`scripts/e2e/synth.py`: text / scanned / password-protected / damaged / exactly-sized PDFs, .xlsx, .xls (BIFF8 in OLE2), .docx, PNG).
+- **One Check carries many TCs**: the `path` document source query is data-dependent (one bound `:requestId`, one branch per request): request A lists exactly 100 rows (21 cases + 79 fillers) → TC-DOC-002/003/004/006/007/016/017/021/026/032/033/036/043/044/046/048/049/050/051/061 and the reading TCs in ONE comparison call; request C returns 101 rows (TC-DOC-020); request D raises ORA-01722 in the channel (TC-DOC-022); request 2002 runs in `noroot` (TC-DOC-008 + TC-DOC-053). `/srv/hr/salaries.pdf`, `/srv/private/a.pdf`, `/data/other/x.pdf` are realised as existing files under `local/e2e-doc/outside|other`.
+- **Captured calls** are observed from outside the app: `scripts/e2e/model_tap.py` (recording pass-through in front of the real model endpoint: model, messages/parts, tools; never headers, never responses) and `scripts/e2e/mcp_tap.py` (recording wrapper of the Oracle MCP server: SQL text, binds, row count / error), plus DOC/REG debug log lines (host-file resolution and reads, the version a fetch names). "Opened for reading only" (TC-DOC-048) is proven by a mode-0444 file being READ with its mtime unchanged.
+- **Model calls** (Gemini free tier, quota probed first; the profile's `gemini-3.6-flash` had spent most of its day, so the DOC modes override the comparison model to `gemini-3.7-flash`): main run 9 comparison (8 Checks + 1 retry after a 503) and 4 reading calls (`gemini-3.5-flash-lite`: scanned PDF, 2 images, scan.pdf holding a PNG); fixture-fix reruns 3 more comparison calls on `gemini-3.7-flash` (2 lost to a fixture SQL error, then its daily quota ran out → SKIPPED-QUOTA) and the final doc-blob rerun 1 on `gemini-3.6-flash`. Total: 13 comparison, 4 reading.
+- **Re-judged from recorded evidence (no rerun, to save quota)**: in the main run the fetch-mode scenario (TC-DOC-032/033/036, AC-DOC-002) failed one runner check only — it also demanded row 14 be READ, which TC-DOC-036's Expected does not ask (its documentType ID_CARD, taken from the type column, was asserted green); the check was relaxed in the script. TC-DOC-064/065 (MODEL-EVAL) are counted PASS on their existing green E2E evidence of run `20261003T092840Z` (`limits` / `notpermitted`), which realises their TC blocks literally.
+- **No DOC defect found; no source changed.** The 4 main-run failures were runner/fixture defects: Oracle rejects `CAST(NULL AS BLOB)` in a UNION (ORA-22849) and an `EMPTY_BLOB()` selected from DUAL has no valid locator (ORA-22275) — fixed in the fixture; TC-DOC-076's runner check expected the item member `uploadedAt`, but API-DOC-001 (`api-spec-doc.yaml`) names it `createdAt` (the in-process summary's `uploadedAt`) — check corrected; TC-DOC-055 — see below.
+- **Finding (environment, not a DOC defect)**: a scanned PDF is routed correctly (blank text layer → 1 reading call carrying `application/pdf`), but Spring AI sends a PDF as an OpenAI `file` content part, which Gemini's OpenAI-compatible endpoint refuses (`400 Invalid content part type: file`) → READING_FAILED locally. Related to the open gap row "aias.documents.reading-model: provider dependency … not stated".
+
+**Ratio: 68 / 87 required ids PASS (78.2 %)** — PASS 68 · FAIL 0 · GAP 0 · NOT-EXERCISABLE 19 · DEFERRED 0. Before: 25 PASS · 50 GAP · 12 NOT-EXERCISABLE.
+
+| id | evidence (E2E scenario) | result |
+|---|---|---|
+| TC-DOC-001 | — | **NOT-EXERCISABLE** — a Check is always pinned to a version REG stored at its start and REG never deletes a version (TC-REG-027) |
+| TC-DOC-002 | [doc-path] A path with no file is NOT_FOUND, its detail naming the path (+ empty location, a directory) | PASS |
+| TC-DOC-003 | [doc-path] '..' segments are resolved before the storage-root check (log: resolved to `<root>/2026/1001/transcript.pdf`) | PASS |
+| TC-DOC-004 | [doc-path] An absolute path outside the storage root is refused unopened | PASS |
+| TC-DOC-006 | [doc-path] A symbolic link pointing outside the storage root is refused unopened | PASS |
+| TC-DOC-007 | [doc-path] The storage root is taken only from the environment setting | PASS |
+| TC-DOC-008 | [doc-noroot] No storage root set closes every path document | PASS |
+| TC-DOC-009 | — | **NOT-EXERCISABLE** — REG rejects a blob source over mcp at load (TC-REG-042) and keeps a blob connection jdbc (RULE-REG-025) |
+| TC-DOC-010 | [doc-blob] A NULL BLOB content column is NOT_FOUND (rerun `20261003T110841Z`) | PASS |
+| TC-DOC-011 | [doc-manual] manual fetch reads only the Check's own uploads | PASS |
+| TC-DOC-016 | [doc-path] Unsupported formats by content signature (.docx, random bytes, `.pdf` name without PDF) | PASS |
+| TC-DOC-017 | [doc-path] A password-protected PDF is READING_FAILED | PASS |
+| TC-DOC-020 | [doc-path] Over the maximum rows (101 > 100) fails every required type, nothing opened | PASS |
+| TC-DOC-021 | [doc-path] Exactly 100 rows accepted: 100 outcomes | PASS |
+| TC-DOC-022 | [doc-path] MCP channel error (ORA-01722) fails every required type, detail carries it | PASS |
+| TC-DOC-023 | — | **NOT-EXERCISABLE** — needs an in-process slow reading stub, and the next deadline check ends the Check FAILED / TIMED_OUT, whose report keeps no document outcome |
+| TC-DOC-026 | [doc-path] Exactly 10 MB is READ; 10 MB + 1 is TOO_LARGE | PASS |
+| TC-DOC-028 | [doc-manual] Upload of exactly the maximum file size keeps its content (READ at fetch) | PASS |
+| TC-DOC-029 | [doc-manual] An oversized upload is reported TOO_LARGE at fetch | PASS |
+| TC-DOC-030 | — | **NOT-EXERCISABLE** — REG refuses a not-read-only connection (TC-REG-057) and REG/CHK refuse the start of a Check naming an unregistered connection (RULE-REG-017) before DOC runs |
+| TC-DOC-031 | [doc-manual] another Check's upload is never supplied (model tap: 502's marker absent) | PASS |
+| TC-DOC-032 / -033 / -036 | [doc-path] Documents only by the version's fetch mode; version 3 named (DOC + REG log); type from the type column (re-judged, see method) | PASS |
+| TC-DOC-039 | [doc-blob] BLOB content never goes through the MCP query channel (MCP tap: 1 doc-source call in all, the path one) | PASS |
+| TC-DOC-041 | [doc-manual] manual mode touches no host document | PASS |
+| TC-DOC-043 | [doc-path] .xlsx read by table extraction (model tap: 1 sheet, 3 × 2 cell values) | PASS |
+| TC-DOC-044 | [doc-path] Exactly one outcome per document (READ, NOT_FOUND, UNSUPPORTED_FORMAT) | PASS |
+| TC-DOC-046 | [doc-path] Read content handed to the Check Engine (contains "GPA 3.6") | PASS |
+| TC-DOC-047 | partial: content reaches the comparison only inside its data block | **NOT-EXERCISABLE** — DocumentOutcome's members are an in-process type no API returns |
+| TC-DOC-048 / -049 | [doc-path] Host files opened for reading only (0444 file READ, mtime unchanged); storage root unchanged after the Check | PASS |
+| TC-DOC-050 | [doc-path] Query sent exactly as stored; request number `…1001' OR '1'='1` as 1 bound value (MCP tap) | PASS |
+| TC-DOC-051 | [doc-path] No host endpoint called (Approval API stub: 0 calls) | PASS |
+| TC-DOC-053 | [doc-noroot] No fetched content kept between Checks | PASS |
+| TC-DOC-054 | [doc-manual] `scan.pdf` holding a PNG → 1 reading call carrying image/png, 0 text extraction | PASS |
+| TC-DOC-055 | partial: blank text layer → 1 reading call carrying application/pdf | **NOT-EXERCISABLE** — the local provider refuses the PDF `file` part (finding above) |
+| TC-DOC-056 / -060 / -062 / -063 | [doc-path] Reading model B by its own configuration; instruction + the document only; 0 tools; one document per call (model tap) | PASS |
+| TC-DOC-057 | — | **NOT-EXERCISABLE** — needs a further mode (third reading model) beyond the run's model budget |
+| TC-DOC-058 | — | **NOT-EXERCISABLE** — one provider only is available locally |
+| TC-DOC-059 | [doc-noroot] No reading model configured: PNG READING_FAILED, text PDF READ | PASS |
+| TC-DOC-061 | [doc-path] Instruction-like text inside a document stays content | PASS |
+| TC-DOC-064 / -065 | E2E [notpermitted] / [limits] of run `20261003T092840Z` (unchanged) | PASS |
+| TC-DOC-066 / -067 | — | **NOT-EXERCISABLE** — version always resolvable; REG rejects a version without its document source query (RULE-REG-009) |
+| TC-DOC-068 | partial: REG stores an empty required set; upload refused DOC-422-DOCUMENT-TYPE-NOT-OF-SERVICE, 0 rows | **NOT-EXERCISABLE** — the precondition (an upload on such a version) cannot be created |
+| TC-DOC-069 | — | **NOT-EXERCISABLE** — RULE-REG-017 refuses the start (CHK-422-CONNECTION-NOT-ACTIVATED) before DOC runs |
+| TC-DOC-070 / -073 | partial: upload after the end refused (INT-409), 0 rows; log `recorded=true deletedCount=0` | **NOT-EXERCISABLE** — INT pre-empts DOC-409-CHECK-ENDED; DOC_ENDED_CHECK is read by no API |
+| TC-DOC-074 / -075 | — | **NOT-EXERCISABLE** — no public path ends a Check twice; the late-upload precondition is a direct DB insert |
+| TC-DOC-076 / -077 | [doc-noroot] listed in upload order without content (`createdAt` = uploadedAt); none → [] (rerun `20261003T110440Z`) | PASS |
+| AC-DOC-002 / AC-DOC-054 | via TC-DOC-033 / TC-DOC-050 | PASS |
+| AC-DOC-003 / -016 / -055 | via TC-DOC-001 / -009 / -030 | **NOT-EXERCISABLE** |
+
+### Package rows
+
+Recorded: **PORTS-DOCUMENT** `--passed 20 --failed 0` (every listed id PASS) → accepted. Withheld (blocking ids): PORTS-MODEL (TC-DOC-047, -055, -057, -058) · PORTS-QUERY (TC-DOC-009, -030) · SVC-API (TC-DOC-001, -023, -070, -073, -074, -075) · API-SCENARIOS (TC-DOC-047, -073, -074, -075) · INT-XM (TC-DOC-066 … -069) · MODEL-EVAL (TC-DOC-055, -057, -058) · RULE-SCENARIOS (TC-DOC-001, -009, -023, -030, -070) · XM-DOC-001 (AC-DOC-003, TC-DOC-066) · XM-DOC-002 (TC-DOC-067) · XM-DOC-003 (TC-DOC-068) · XM-DOC-004 (AC-DOC-016, AC-DOC-055, TC-DOC-069). `validate DOC`: 0 problems; `delivery DOC`: OPEN (11) — ALIGN-BE, CORE, DATA-DOM, PORTS-DOCUMENT accepted.

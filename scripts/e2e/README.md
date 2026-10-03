@@ -12,7 +12,9 @@ end of the Check (Active Check gone, uploads deleted).
 |---|---|
 | `setup_fixtures.py` | Idempotent setup of the **synthetic** local fixtures, then app restart when anything changed |
 | `simulate.py` | The scenario runner (stdlib only); `--list` prints every scenario with the P4 TC ids it realises |
-| `synth.py` | Generators of synthetic transcripts: a PDF with a text layer, a PNG with bitmap-font text (no text layer) |
+| `synth.py` | Generators of synthetic documents: PDFs (text layer, exact size, password-protected, scanned, damaged), PNG, .xlsx, .xls (BIFF8), .docx |
+| `model_tap.py` | DOC groups: recording pass-through on 127.0.0.1:7292 in front of the model endpoint (model, messages/parts, tools — never headers or responses) → `logs/e2e-model-tap.jsonl` |
+| `mcp_tap.py` | DOC groups: recording wrapper of the Oracle MCP server (SQL text, binds, row count / error) → `logs/e2e-mcp-tap.jsonl` |
 
 ## What it simulates
 
@@ -39,6 +41,11 @@ end of the Check (Active Check gone, uploads deleted).
 | `reg-versions` ↻ | 0 | version progression: v2→v3→v4 (a manual Check pinned to each version read through INT API-INT-008), edited-in-place / older version / duplicate code rejected, unreadable file (mode 000), file changing during the read (a FIFO whose mtime moves while it is read), blob connection turned mcp / removed then relisted mcp (RULE-REG-025) |
 | `reg-inprocess` ↻ | 0 | in-process interface through public APIs: unknown service (REG-404 text + CHK-422), write verbs refused, load lock held by another Oracle session (sqlplus in the `erp-oracle` container) → the stored registry is served; the TCs no public API can observe are reported `NOT-EXERCISABLE` with the reason |
 
+| `doc-path` ↻ | 3 + 3 reading | DOC `path` fetch in an ISOLATED package directory / storage root `local/e2e-doc/` (mode `m1`): one data-dependent document source query (one bound `:requestId`) gives request A exactly 100 rows (21 cases: NOT_FOUND incl. empty location and a directory, `..` resolved, absolute / symlink / other-directory paths OUTSIDE_STORAGE_ROOT, .docx / random bytes / `.pdf` name without PDF UNSUPPORTED_FORMAT, password-protected / damaged PDF and damaged workbook READING_FAILED, .xlsx and .xls tables, scanned PDF and 2 images to the reading model, exactly 10 MB READ / +1 byte TOO_LARGE, instruction-like text; 79 fillers), request C 101 rows (over max-rows), request D an MCP error |
+| `doc-blob` ↻ | 1 | DOC `blob` fetch over `local-jdbc`: BLOB READ, NULL content column NOT_FOUND, random bytes UNSUPPORTED_FORMAT; no BLOB through the MCP channel |
+| `doc-manual` ↻ | 2 + 1 reading | per-Check isolation of uploads (Checks 501 / 502), manual mode touches no host document, upload of exactly 10 MB kept and READ, oversized upload TOO_LARGE at fetch, `scan.pdf` holding a PNG read as an image |
+| `doc-noroot` ↻ | 2 | mode `noroot` (no storage root, no reading model, 1 MB): every `path` document OUTSIDE_STORAGE_ROOT, nothing kept between Checks, PNG READING_FAILED without a reading model, upload listing in order without content |
+| `doc-inprocess` | 0 | DOC TCs no public API reaches, reported `NOT-EXERCISABLE` with the reason (partial evidence asserted where cheap) |
 ↻ = restart group. The REG groups make **0 model calls**: they never confirm a Check, start only `manual` Checks
 (or ones expected to be refused 422), and their modes also set `aias.documents.data-class=REAL` (FREE models) as
 defence in depth. A service code a REG TC stores carries the run's tag (`scholarship-request-t1003095850`) because
@@ -75,6 +82,8 @@ python3 scripts/e2e/simulate.py                  # all groups -> logs/e2e-simula
 python3 scripts/e2e/simulate.py --only refusals --only registry   # no model call
 python3 scripts/e2e/simulate.py --out governance/project-artifacts/E2E-SIMULATION-<date>
 ```
+
+`--match <text>` runs only the scenarios whose name contains the text. The DOC modes override the comparison model (`E2E_DOC_COMPARISON_MODEL`, default `gemini-3.7-flash`).
 
 Exit code 0 when no scenario FAILED or ERRORed. Scenario statuses: `PASSED`, `FAILED`, `ERROR` (runner or
 transport failure), `SKIPPED-QUOTA`, `SKIPPED-MODEL`, `SKIPPED-RATE`, `SKIPPED-BUDGET`, `SKIPPED-PRECONDITION`, `AMBIGUOUS`, `NOT-EXERCISABLE`.

@@ -1,0 +1,358 @@
+{
+  "runId": "20261003T110440Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "doc-blob": {
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "doc-noroot": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "doc-blob",
+      "name": "A NULL (or empty) BLOB content column is NOT_FOUND; the other rows are read",
+      "tcs": [
+        "TC-DOC-010"
+      ],
+      "modelDependent": true,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 21.5,
+      "checksCreated": [
+        226
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-path loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-blob loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-manual loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-noreq loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-blob-t1003110440 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 226 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "4 blob outcomes",
+          "detail": "[{'position': 1, 'documentType': 'ID_CARD', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n\\nhttps://docs.oracle.com/error-help/db/ora-22849/'}, {'position': 2, 'documentType': 'TRANSCRIPT', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n"
+        },
+        {
+          "ok": false,
+          "check": "TRANSCRIPT BLOB READ",
+          "detail": "{'position': 1, 'documentType': 'ID_CARD', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n\\nhttps://docs.oracle.com/error-help/db/ora-22849/'}"
+        },
+        {
+          "ok": false,
+          "check": "NULL content column: ID_CARD UNREADABLE / NOT_FOUND",
+          "detail": "{'position': 2, 'documentType': 'TRANSCRIPT', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n\\nhttps://docs.oracle.com/error-help/db/ora-22849/'}"
+        },
+        {
+          "ok": false,
+          "check": "EMPTY_BLOB(): ID_CARD UNREADABLE / NOT_FOUND",
+          "detail": "{}"
+        },
+        {
+          "ok": false,
+          "check": "random bytes: UNREADABLE / UNSUPPORTED_FORMAT",
+          "detail": "{}"
+        }
+      ]
+    },
+    {
+      "group": "doc-blob",
+      "name": "BLOB content never goes through the MCP query channel",
+      "tcs": [
+        "TC-DOC-039"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the blob Check sends 0 document source calls through the MCP channel",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no MCP call of the blob Check carries a content column",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the blob query ran over the jdbc connection local-jdbc (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-noroot",
+      "name": "Uploaded Documents of a Check listed in upload order without content; none -> empty list",
+      "tcs": [
+        "TC-DOC-076",
+        "TC-DOC-077"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.6,
+      "checksCreated": [
+        227,
+        228,
+        229
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-path loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-blob loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-manual loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-noreq loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003110440 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003110440 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003110440 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/227/documents -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/227/documents -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/228/documents -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET ?checkId=501 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 items in upload order",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "types, sizes 81920 / 2097152, oversized false / true",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "each item: uploadedDocumentId, documentType, fileName, fileSize, oversized, createdAt (the summary's uploadedAt) \u2014 no content member",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-077: a Check with 0 uploads -> 200 []",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "A NULL (or empty) BLOB content column is NOT_FOUND; the other rows are read",
+      "mode": "mode [aias.registry.package-directory=local/e2e-doc/packages, aias.documents.storage-root=local/e2e-doc/root, aias.check.max-rows=100, aias.check.timeout=PT5M, aias.check.comparison-model.model=gemini-3.7-flash, aias.documents.reading-model.tier=APPROVED, aias.documents.reading-model.instruction=Transcribe the document text exactly., spring.ai.openai.base-url=http://127.0.0.1:7292/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:04:48"
+    },
+    {
+      "scenario": "Uploaded Documents of a Check listed in upload order without content; none -> empty list",
+      "mode": "mode [aias.registry.package-directory=local/e2e-doc/packages, aias.documents.storage-root=, aias.check.max-rows=100, aias.check.timeout=PT5M, aias.check.comparison-model.model=gemini-3.7-flash, aias.documents.reading-model.tier=APPROVED, aias.documents.reading-model.instruction=Transcribe the document text exactly., spring.ai.openai.base-url=http://127.0.0.1:7292/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.documents.reading-model.provider=, aias.check.max-file-size=1MB, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:05:37"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T15:06:13"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 226,
+      "serviceCode": "doc-blob-t1003110440",
+      "requestNumber": "E2E-t1003110440-BLOB",
+      "what": "started by 'A NULL (or empty) BLOB content column is NOT_FOUND; the other rows are read'"
+    },
+    {
+      "checkId": 227,
+      "serviceCode": "doc-manual-t1003110440",
+      "requestNumber": "E2E-t1003110440-L501",
+      "what": "started by 'Uploaded Documents of a Check listed in upload order without content; none -> empty list'"
+    },
+    {
+      "checkId": 228,
+      "serviceCode": "doc-manual-t1003110440",
+      "requestNumber": "E2E-t1003110440-L502",
+      "what": "started by 'Uploaded Documents of a Check listed in upload order without content; none -> empty list'"
+    },
+    {
+      "checkId": 229,
+      "serviceCode": "doc-manual-t1003110440",
+      "requestNumber": "E2E-t1003110440-L503",
+      "what": "started by 'Uploaded Documents of a Check listed in upload order without content; none -> empty list'"
+    }
+  ]
+}

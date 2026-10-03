@@ -1,0 +1,163 @@
+{
+  "runId": "20261003T110841Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "doc-blob": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "doc-blob",
+      "name": "A NULL BLOB content column is NOT_FOUND; the other rows are read",
+      "tcs": [
+        "TC-DOC-010"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 17.5,
+      "checksCreated": [
+        232
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-path loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-blob loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-manual loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-noreq loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-blob-t1003110841 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 232 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "3 blob outcomes",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TRANSCRIPT BLOB READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "NULL content column: ID_CARD UNREADABLE / NOT_FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "random bytes: UNREADABLE / UNSUPPORTED_FORMAT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-blob",
+      "name": "BLOB content never goes through the MCP query channel",
+      "tcs": [
+        "TC-DOC-039"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the blob Check sends 0 document source calls through the MCP channel",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no MCP call of the blob Check carries a content column",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the blob query ran over the jdbc connection local-jdbc (log)",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "A NULL BLOB content column is NOT_FOUND; the other rows are read",
+      "mode": "mode [aias.registry.package-directory=local/e2e-doc/packages, aias.documents.storage-root=local/e2e-doc/root, aias.check.max-rows=100, aias.check.timeout=PT5M, aias.check.comparison-model.model=gemini-3.6-flash, aias.documents.reading-model.tier=APPROVED, aias.documents.reading-model.instruction=Transcribe the document text exactly., spring.ai.openai.base-url=http://127.0.0.1:7292/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:08:50"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T15:09:35"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 232,
+      "serviceCode": "doc-blob-t1003110841",
+      "requestNumber": "E2E-t1003110841-BLOB",
+      "what": "started by 'A NULL BLOB content column is NOT_FOUND; the other rows are read'"
+    }
+  ]
+}

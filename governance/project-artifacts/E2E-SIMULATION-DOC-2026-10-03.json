@@ -1,0 +1,1952 @@
+{
+  "runId": "20261003T105921Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 9,
+    "reading": 4
+  },
+  "quotaHit": null,
+  "groups": {
+    "doc-path": {
+      "passed": 20,
+      "failed": 2,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "doc-blob": {
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "doc-manual": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "doc-noroot": {
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "doc-inprocess": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 15,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "doc-path",
+      "name": "A path with no file is NOT_FOUND, its detail naming the path",
+      "tcs": [
+        "TC-DOC-002"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 20.6,
+      "checksCreated": [
+        213
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-path loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-blob loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-manual loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-noreq loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-path-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 213 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "row 2 (2026/1001/id.png, no such file): ID_CARD UNREADABLE / NOT_FOUND naming the path",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "empty location: UNREADABLE / NOT_FOUND (the document has no path)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a directory: UNREADABLE / NOT_FOUND (a directory, not a file)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "'..' segments are resolved before the storage-root check",
+      "tcs": [
+        "TC-DOC-003"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the location compared with the storage root is <root>/2026/1001/transcript.pdf (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the file is READ",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "An absolute path outside the storage root is refused unopened",
+      "tcs": [
+        "TC-DOC-004"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "precondition: the outside file exists",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "UNREADABLE / OUTSIDE_STORAGE_ROOT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 reads of the outside file (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its content reaches no model call",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "A symbolic link pointing outside the storage root is refused unopened",
+      "tcs": [
+        "TC-DOC-006"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "precondition: 2026/link.pdf is a symbolic link",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "UNREADABLE / OUTSIDE_STORAGE_ROOT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 reads through the link (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the link target's content reaches no model call",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "The storage root is taken only from the environment setting",
+      "tcs": [
+        "TC-DOC-007"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "precondition: the other-root file exists",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "an existing file under another directory: UNREADABLE / OUTSIDE_STORAGE_ROOT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "it is not opened (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Unsupported formats by content signature: .docx, random bytes, a .pdf name without PDF content",
+      "tcs": [
+        "TC-DOC-016"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": ".docx: UNREADABLE / UNSUPPORTED_FORMAT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "random bytes: UNREADABLE / UNSUPPORTED_FORMAT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "statement.pdf holding plain text: UNREADABLE / UNSUPPORTED_FORMAT (the name is ignored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "A password-protected PDF is READING_FAILED",
+      "tcs": [
+        "TC-DOC-017"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "protected.pdf: TRANSCRIPT UNREADABLE / READING_FAILED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "A damaged PDF and a damaged workbook are READING_FAILED",
+      "tcs": [
+        "REQ-DOC-029"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "damaged.pdf: UNREADABLE / READING_FAILED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "damaged.xlsx: UNREADABLE / READING_FAILED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": ".xlsx read by table extraction: 1 table of 3 rows x 2 columns with the cell values",
+      "tcs": [
+        "TC-DOC-043"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "grades.xlsx: READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the content handed over holds the table [[Course,Grade],[SYNTHETIC ALGEBRA 101,A],[SYNTHETIC PHYSICS 202,B]] (comparison call, model tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one sheet 'Grades'",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": ".xls (BIFF8) read by table extraction",
+      "tcs": [
+        "REQ-DOC-026"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "grades.xls: READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both workbooks' tables reach the comparison as data (.xlsx and .xls, same 3 x 2 cells)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "log: 1 sheet read from the XLS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Exactly 10 MB is READ; 10 MB + 1 byte is TOO_LARGE naming both sizes",
+      "tcs": [
+        "TC-DOC-026",
+        "TC-DOC-018",
+        "TC-DOC-025"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "precondition: exact.pdf is 10485760 bytes",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "exact.pdf (exactly the maximum): READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "over.pdf (maximum + 1): UNREADABLE / TOO_LARGE naming the size and the maximum",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the oversized file is measured, never read (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Exactly the maximum rows (100) is accepted: 100 outcomes, one per row",
+      "tcs": [
+        "TC-DOC-021",
+        "TC-DOC-044"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the document source query returned exactly 100 rows (MCP tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "100 document outcomes (one per row, no MISSING: both required types listed)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 SOURCE_QUERY_FAILED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-044: the readable PDF READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-044: the path with no file UNREADABLE / NOT_FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-044: the .docx UNREADABLE / UNSUPPORTED_FORMAT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Documents come only by the version's fetch mode (path); its version and its type column are used",
+      "tcs": [
+        "TC-DOC-032",
+        "TC-DOC-033",
+        "TC-DOC-036",
+        "AC-DOC-002"
+      ],
+      "modelDependent": true,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "every outcome has source mode path",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 Uploaded Document reads (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 jdbc sessions (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the fetch names version 3 of the Check's service (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the REG interface is asked for version 3 (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the report names version 3",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "outcomes for TRANSCRIPT and ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-036: row 1's type column TRANSCRIPT",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "TC-DOC-036: row 14's type column ID_CARD",
+          "detail": "{'position': 14, 'documentType': 'ID_CARD', 'sourceMode': 'path', 'readStatus': 'UNREADABLE', 'unreadableReason': 'READING_FAILED', 'detail': 'the document-reading call failed: BadRequestException: 400: [{\"error\":{\"code\":400,\"message\":\"Invalid content part type: file\",\"status\":\"INVALID_ARGUMENT\"}}]'}"
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Read content is handed to the Check Engine with its outcome (GPA 3.6)",
+      "tcs": [
+        "TC-DOC-046"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "TRANSCRIPT, source path, READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the TRANSCRIPT's content handed over contains 'GPA 3.6' (comparison call)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Host files are opened for reading only and stay unchanged after the Check",
+      "tcs": [
+        "TC-DOC-048",
+        "TC-DOC-049"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "precondition: transcript.pdf is mode 0444 (a write-mode open would fail)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "it is READ (opened in read mode only)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its modification time is unchanged",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "after the Check ended the storage root holds the same 23 entries with the same names, sizes and modification times",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "The document source query is sent exactly as written; the request number is one bound value",
+      "tcs": [
+        "TC-DOC-050",
+        "AC-DOC-054"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "1 document source call on the MCP channel (tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the SQL text sent equals the stored query text",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the request number 1001' OR '1'='1 is sent as 1 bound value",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the bound value matched its q-quoted literal (100 rows): never concatenated",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "No host endpoint is called by the fetch, the Approval API included",
+      "tcs": [
+        "TC-DOC-051"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "precondition: approval enabled",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the host Approval API stub received 0 calls during the Check",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Instruction-like text inside a document stays content",
+      "tcs": [
+        "TC-DOC-061"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "injection.pdf: READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its content holds the sentence unchanged (handed over as data)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "every reading instruction sent equals the configured one",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "3 reading calls (the scanned PDF and 2 images; the text PDF triggers none)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "A PDF without a text layer is read in the document-reading step",
+      "tcs": [
+        "TC-DOC-055"
+      ],
+      "modelDependent": true,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "id-scan.pdf: ID_CARD READ",
+          "detail": "{'position': 14, 'documentType': 'ID_CARD', 'sourceMode': 'path', 'readStatus': 'UNREADABLE', 'unreadableReason': 'READING_FAILED', 'detail': 'the document-reading call failed: BadRequestException: 400: [{\"error\":{\"code\":400,\"message\":\"Invalid content part type: file\",\"status\":\"INVALID_ARGUMENT\"}}]'}"
+        },
+        {
+          "ok": true,
+          "check": "the reading model receives 1 call carrying the PDF (model tap)",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "log: no text layer (0 characters)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "Document-reading model: its own configuration, fixed instruction plus the document only, no tool, one document per call",
+      "tcs": [
+        "TC-DOC-056",
+        "TC-DOC-060",
+        "TC-DOC-062",
+        "TC-DOC-063"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "TC-DOC-056: the 3 reading calls go to model B (gemini-3.5-flash-lite)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-056: model A (gemini-3.7-flash) receives only the Check Engine's 1 comparison call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-056: no document media reaches model A",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-060 call 1: the configured instruction 'Transcribe the document text exactly.'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-060/063 call 1: besides the instruction exactly 1 part, the document",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-062 call 1: 0 tools declared",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-060 call 2: the configured instruction 'Transcribe the document text exactly.'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-060/063 call 2: besides the instruction exactly 1 part, the document",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-062 call 2: 0 tools declared",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-060 call 3: the configured instruction 'Transcribe the document text exactly.'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-060/063 call 3: besides the instruction exactly 1 part, the document",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-062 call 3: 0 tools declared",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-063: 2 image documents -> 2 calls, 1 image each",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "photo-1.png READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "photo-2.png READ",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "A document source query over the maximum rows fails every required type, nothing opened",
+      "tcs": [
+        "TC-DOC-020"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 12.8,
+      "checksCreated": [
+        214
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-path-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 214 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 outcomes UNREADABLE / SOURCE_QUERY_FAILED (TRANSCRIPT, ID_CARD)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "detail: more than 100 rows",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the channel answered 101 rows (limit maxRows + 1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 files opened (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "An error of the MCP channel on the document source query fails every required type",
+      "tcs": [
+        "TC-DOC-022"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "retried once after: check 215 ended MODEL_UNAVAILABLE: the comparison model call failed: InternalServerException: 503: [{\"error\":{\"code\":503,\"message\":\"This model is currently expe",
+      "durationSec": 40.7,
+      "checksCreated": [
+        216
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-path-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 216 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the channel answered the document source query with an error (tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 outcomes UNREADABLE / SOURCE_QUERY_FAILED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "each detail contains the error (ORA-01722)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-blob",
+      "name": "A NULL (or empty) BLOB content column is NOT_FOUND; the other rows are read",
+      "tcs": [
+        "TC-DOC-010"
+      ],
+      "modelDependent": true,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 15.1,
+      "checksCreated": [
+        217
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-blob-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 217 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "4 blob outcomes",
+          "detail": "[{'position': 1, 'documentType': 'ID_CARD', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n\\nhttps://docs.oracle.com/error-help/db/ora-22849/'}, {'position': 2, 'documentType': 'TRANSCRIPT', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n"
+        },
+        {
+          "ok": false,
+          "check": "TRANSCRIPT BLOB READ",
+          "detail": "{'position': 1, 'documentType': 'ID_CARD', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n\\nhttps://docs.oracle.com/error-help/db/ora-22849/'}"
+        },
+        {
+          "ok": false,
+          "check": "NULL content column: ID_CARD UNREADABLE / NOT_FOUND",
+          "detail": "{'position': 2, 'documentType': 'TRANSCRIPT', 'sourceMode': 'blob', 'readStatus': 'UNREADABLE', 'unreadableReason': 'SOURCE_QUERY_FAILED', 'detail': 'the document source query failed: 99999/SQLException: ORA-22849: Type BLOB is not supported for this function or operator.\\n\\nhttps://docs.oracle.com/error-help/db/ora-22849/'}"
+        },
+        {
+          "ok": false,
+          "check": "EMPTY_BLOB(): ID_CARD UNREADABLE / NOT_FOUND",
+          "detail": "{}"
+        },
+        {
+          "ok": false,
+          "check": "random bytes: UNREADABLE / UNSUPPORTED_FORMAT",
+          "detail": "{}"
+        }
+      ]
+    },
+    {
+      "group": "doc-blob",
+      "name": "BLOB content never goes through the MCP query channel",
+      "tcs": [
+        "TC-DOC-039"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the MCP channel receives 1 document source call in all (the path one)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no MCP call of the blob Check carries a content column",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the blob query ran over the jdbc connection local-jdbc (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-manual",
+      "name": "manual fetch reads only the Check's own uploads; another Check's upload is never supplied",
+      "tcs": [
+        "TC-DOC-011",
+        "TC-DOC-031"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 44.0,
+      "checksCreated": [
+        218,
+        219
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "uploads of A and B -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm A -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 219 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "uploads of B -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm B -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 218 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 outcomes",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 TRANSCRIPT outcome, source mode manual, READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "ID_CARD MISSING (Check 502's ID_CARD is not among the outcomes)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check 502's content is in no outcome (comparison call holds 501's marker, not 502's)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the manual fetch loads 1 upload (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-manual",
+      "name": "manual mode touches no host document",
+      "tcs": [
+        "TC-DOC-041"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "0 document source queries (MCP tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 host files opened (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 jdbc connections used (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-manual",
+      "name": "Upload of exactly the maximum file size keeps its content (read at fetch)",
+      "tcs": [
+        "TC-DOC-028"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "receipt: 10485760 bytes, oversized=false, no notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET lists it oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its content was kept: READ at fetch",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-manual",
+      "name": "An oversized upload is reported TOO_LARGE at fetch",
+      "tcs": [
+        "TC-DOC-029",
+        "TC-DOC-027"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "receipt: oversized + notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TRANSCRIPT UNREADABLE / TOO_LARGE",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-manual",
+      "name": "Format from the content signature, not the file name: scan.pdf holding a PNG goes to the model as an image",
+      "tcs": [
+        "TC-DOC-054"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "1 reading call carrying an image (image/png, model tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "detected as IMAGE (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 text-extraction calls for scan.pdf (only id-card.pdf's 1, log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "scan.pdf READ (and id-card.pdf)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-noroot",
+      "name": "No storage root set closes every path document",
+      "tcs": [
+        "TC-DOC-008"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 40.1,
+      "checksCreated": [
+        220
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-path loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-blob loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-manual loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-noreq loaded (noroot)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-path-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 220 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 outcomes UNREADABLE / OUTSIDE_STORAGE_ROOT (no storage root is set)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 files opened (log)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-noroot",
+      "name": "No fetched content is kept between Checks",
+      "tcs": [
+        "TC-DOC-053"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the outcomes of request 2002 name only request 2002's documents",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "nothing of request 1001's content reaches request 2002's Check",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC holds 0 rows of request 1001's document content",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-noroot",
+      "name": "No document-reading model configured: the PNG is READING_FAILED, the text PDF READ",
+      "tcs": [
+        "TC-DOC-059"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 28.9,
+      "checksCreated": [
+        221
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload id.png -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 221 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PNG: UNREADABLE / READING_FAILED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PDF: READ",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 reading calls (model tap)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-noroot",
+      "name": "Uploaded Documents of a Check listed in upload order without content; none -> empty list",
+      "tcs": [
+        "TC-DOC-076",
+        "TC-DOC-077"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 1.0,
+      "checksCreated": [
+        222,
+        223,
+        224
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/222/documents -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/222/documents -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/223/documents -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET ?checkId=501 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 items in upload order",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "types, sizes 81920 / 2097152, oversized false / true",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "each item: uploadedDocumentId, documentType, fileName, fileSize, oversized, uploadedAt \u2014 no content member",
+          "detail": "[['createdAt', 'documentType', 'fileName', 'fileSize', 'oversized', 'uploadedDocumentId'], ['createdAt', 'documentType', 'fileName', 'fileSize', 'oversized', 'uploadedDocumentId']]"
+        },
+        {
+          "ok": true,
+          "check": "TC-DOC-077: a Check with 0 uploads -> 200 []",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Unresolvable service package version refused before any document is fetched",
+      "tcs": [
+        "TC-DOC-001"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "a Check is always pinned to the version REG supplied at its start and REG never deletes a stored version (TC-REG-027): no public operation makes fetchDocuments name an unstored version",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "blob query naming a non-jdbc connection refused without running",
+      "tcs": [
+        "TC-DOC-009"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "unreachable through the registry: REG rejects a blob document source over an mcp connection at load (TC-REG-042) and keeps a blob version's connection of type jdbc (RULE-REG-025, TC-REG-092), so no stored blob version reaches DOC over a non-jdbc connection",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Check timeout reached during reading marks unread documents OUT_OF_TIME",
+      "tcs": [
+        "TC-DOC-023"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs an in-process reading-model stub that answers after the deadline, and the outcomes are not observable: the pipeline's next deadline check ends the Check FAILED / TIMED_OUT, whose report keeps no document outcome",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Connection not declared read-only refused without running the query",
+      "tcs": [
+        "TC-DOC-030"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "REG refuses to activate a connection not declared read-only (TC-REG-057), and REG's getCurrentServicePackage refuses a Check whose query names an unregistered connection (RULE-REG-017 -> 422 CHK-422-CONNECTION-NOT-ACTIVATED, TC-REG-057's E2E) before DOC runs",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Content handed over only as data, with no instruction field",
+      "tcs": [
+        "TC-DOC-047"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "the members of DocumentOutcome are an in-process type no API returns; the report omits content. Partial evidence (TC-DOC-046/061): the content reaches the comparison only inside its data block",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Document-reading model replaced by configuration alone",
+      "tcs": [
+        "TC-DOC-057"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs a further mode (a third reading model) with one more reading and one more comparison call, beyond this run's model budget (8 comparison / 4 reading calls)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Provider-neutral model access",
+      "tcs": [
+        "TC-DOC-058"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "only one provider (the OpenAI-compatible Gemini endpoint) is configured locally; a second provider is not available",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "REG version read fails \u2014 DOC returns its defined not-found result",
+      "tcs": [
+        "TC-DOC-066"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "as TC-DOC-001: every Check is pinned to a stored version and INT hands over uploads with the Check's own pinned version, which REG always resolves",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "REG read yields no document source query",
+      "tcs": [
+        "TC-DOC-067"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "REG rejects at load a path/blob version whose document source names no declared query (RULE-REG-009, TC-REG-084), so getServicePackageVersion never yields one",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "REG read yields an empty required-type set \u2014 no MISSING outcome",
+      "tcs": [
+        "TC-DOC-068"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "the precondition (an Uploaded Document of a type, on a version whose required-type set is empty) cannot be created: RULE-DOC-002 refuses every handover for such a version. Partial evidence asserted green in this scenario",
+      "durationSec": 0.1,
+      "checksCreated": [
+        225
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "partial: REG stores a version with an empty required-type set",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-noreq-t1003105921 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: handover refused 422 DOC-422-DOCUMENT-TYPE-NOT-OF-SERVICE (RULE-DOC-002)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: 0 Uploaded Documents created",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "REG connection read fails \u2014 every required type SOURCE_QUERY_FAILED",
+      "tcs": [
+        "TC-DOC-069"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "REG's getCurrentServicePackage refuses the start of a Check whose any query (the document source query included) names an unregistered connection (RULE-REG-017 -> 422 CHK-422-CONNECTION-NOT-ACTIVATED, TC-REG-092's E2E): DOC never runs for it",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Upload refused for a Check already ended",
+      "tcs": [
+        "TC-DOC-070"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "INT refuses an upload for a Check that no longer awaits documents (INT-409) before DOC's handover runs; DOC's RULE-DOC-009 is reachable only in the race of TC-INT-096 (AMBIGUOUS). Partial evidence asserted green in this scenario",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "partial: upload for the ended Check 501 refused by INT first (409 INT-409)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: GET ?checkId=501 -> 200 []",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "End of a Check recorded as an Ended Check",
+      "tcs": [
+        "TC-DOC-073"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "step 3 expects DOC's CheckEndedException (DOC-409-CHECK-ENDED), which INT pre-empts with INT-409; step 2 reads DOC_ENDED_CHECK, which no API returns. Partial evidence asserted green",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "partial: endCheck recorded the Ended Check and returned 0 (Check without upload, log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: a following upload is refused (by INT, 409)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Repeated end of a Check keeps one Ended Check and raises no error",
+      "tcs": [
+        "TC-DOC-074"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "no public operation ends a Check twice: CHK sends one end notice per ending (a second only after a failure of the first) and the count of DOC_ENDED_CHECK rows is not returned by any API",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-inprocess",
+      "name": "Late upload of an ended Check swept at the next end of a Check",
+      "tcs": [
+        "TC-DOC-075"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "its precondition is a row inserted directly into DOC_UPLOADED_DOC (the race of ADR-DOC-015); the runner makes no direct database writes and the race is not reproducible through the API",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "A path with no file is NOT_FOUND, its detail naming the path",
+      "mode": "mode [aias.registry.package-directory=local/e2e-doc/packages, aias.documents.storage-root=local/e2e-doc/root, aias.check.max-rows=100, aias.check.timeout=PT5M, aias.check.comparison-model.model=gemini-3.7-flash, aias.documents.reading-model.tier=APPROVED, aias.documents.reading-model.instruction=Transcribe the document text exactly., spring.ai.openai.base-url=http://127.0.0.1:7292/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T14:59:28"
+    },
+    {
+      "scenario": "No storage root set closes every path document",
+      "mode": "mode [aias.registry.package-directory=local/e2e-doc/packages, aias.documents.storage-root=, aias.check.max-rows=100, aias.check.timeout=PT5M, aias.check.comparison-model.model=gemini-3.7-flash, aias.documents.reading-model.tier=APPROVED, aias.documents.reading-model.instruction=Transcribe the document text exactly., spring.ai.openai.base-url=http://127.0.0.1:7292/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.documents.reading-model.provider=, aias.check.max-file-size=1MB, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:02:36"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T15:03:47"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 213,
+      "serviceCode": "doc-path-t1003105921",
+      "requestNumber": "E2E-t1003105921-1001' OR '1'='1",
+      "what": "started by 'A path with no file is NOT_FOUND, its detail naming the path'"
+    },
+    {
+      "checkId": 214,
+      "serviceCode": "doc-path-t1003105921",
+      "requestNumber": "E2E-t1003105921-ROWS101",
+      "what": "started by 'A document source query over the maximum rows fails every required type, nothing opened'"
+    },
+    {
+      "checkId": 215,
+      "serviceCode": "doc-path-t1003105921",
+      "requestNumber": "E2E-t1003105921-MCPERR",
+      "what": "started by 'An error of the MCP channel on the document source query fails every required type'"
+    },
+    {
+      "checkId": 216,
+      "serviceCode": "doc-path-t1003105921",
+      "requestNumber": "E2E-t1003105921-MCPERR",
+      "what": "started by 'An error of the MCP channel on the document source query fails every required type'"
+    },
+    {
+      "checkId": 217,
+      "serviceCode": "doc-blob-t1003105921",
+      "requestNumber": "E2E-t1003105921-BLOB",
+      "what": "started by 'A NULL (or empty) BLOB content column is NOT_FOUND; the other rows are read'"
+    },
+    {
+      "checkId": 218,
+      "serviceCode": "doc-manual-t1003105921",
+      "requestNumber": "E2E-t1003105921-502",
+      "what": "started by 'manual fetch reads only the Check's own uploads; another Check's upload is never supplied'"
+    },
+    {
+      "checkId": 219,
+      "serviceCode": "doc-manual-t1003105921",
+      "requestNumber": "E2E-t1003105921-501",
+      "what": "started by 'manual fetch reads only the Check's own uploads; another Check's upload is never supplied'"
+    },
+    {
+      "checkId": 220,
+      "serviceCode": "doc-path-t1003105921",
+      "requestNumber": "E2E-t1003105921-2002",
+      "what": "started by 'No storage root set closes every path document'"
+    },
+    {
+      "checkId": 221,
+      "serviceCode": "doc-manual-t1003105921",
+      "requestNumber": "E2E-t1003105921-NOMODEL",
+      "what": "started by 'No document-reading model configured: the PNG is READING_FAILED, the text PDF READ'"
+    },
+    {
+      "checkId": 222,
+      "serviceCode": "doc-manual-t1003105921",
+      "requestNumber": "E2E-t1003105921-L501",
+      "what": "started by 'Uploaded Documents of a Check listed in upload order without content; none -> empty list'"
+    },
+    {
+      "checkId": 223,
+      "serviceCode": "doc-manual-t1003105921",
+      "requestNumber": "E2E-t1003105921-L502",
+      "what": "started by 'Uploaded Documents of a Check listed in upload order without content; none -> empty list'"
+    },
+    {
+      "checkId": 224,
+      "serviceCode": "doc-manual-t1003105921",
+      "requestNumber": "E2E-t1003105921-L503",
+      "what": "started by 'Uploaded Documents of a Check listed in upload order without content; none -> empty list'"
+    },
+    {
+      "checkId": 225,
+      "serviceCode": "doc-noreq-t1003105921",
+      "requestNumber": "E2E-t1003105921-NOREQ",
+      "what": "started by 'REG read yields an empty required-type set \u2014 no MISSING outcome'"
+    }
+  ]
+}
