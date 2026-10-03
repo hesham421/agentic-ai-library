@@ -9,6 +9,7 @@ import io.agenticai.doc.domain.ReadOutcome.Read;
 import io.agenticai.doc.domain.ReadOutcome.Unreadable;
 import io.agenticai.doc.domain.UnreadableReason;
 import io.agenticai.doc.port.DocumentReadingModelPort;
+import io.agenticai.platform.config.CheckLimitsProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -23,10 +24,14 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -50,21 +55,31 @@ import java.util.concurrent.TimeoutException;
  *   <li>no model bean, or no reading instruction → READING_FAILED (REQ-DOC-033);</li>
  *   <li>the Check's deadline already reached → OUT_OF_TIME, no call (REQ-DOC-040);</li>
  *   <li>one new {@link Prompt} of exactly two parts: a system message that is the configured
- *       instruction and nothing else (REQ-DOC-046), and a user message with no text whose single
- *       {@link Media} is the document (REQ-DOC-057). Document bytes reach the model only as that
+ *       instruction and nothing else (REQ-DOC-046), and a user message with no text whose
+ *       {@link Media} is the one document (REQ-DOC-057). An image is sent as its own single
+ *       media. A PDF — it reaches this port only when its text layer is blank (REQ-DOC-027) — is
+ *       sent as the PNG images of its pages, in page order, in the same single call
+ *       ({@link PdfPageRenderer}: at most {@value PdfPageRenderer#MAX_PAGES} pages, the images
+ *       together within {@code aias.check.max-file-size}, rendered in memory): OpenAI-compatible
+ *       providers such as Gemini refuse a PDF sent as an OpenAI {@code file} content part, while
+ *       images are accepted by every vision model. Document bytes reach the model only as that
  *       media — data, never instruction text (REQ-DOC-045, REQ-DOC-047, G7). The prompt sets no
  *       option and registers no tool: with none in the model's own options the call declares 0
  *       tools (REQ-DOC-048, G1); there is no advisor, memory or earlier content (G9);</li>
- *   <li>the synchronous call runs on its own virtual thread and is waited for only as long as
- *       the Check has left; past that it is cancelled — the thread interrupted — and the
- *       document is OUT_OF_TIME (REQ-DOC-040, G8);</li>
+ *   <li>the rendering (for a PDF) and the synchronous call run on their own virtual thread and
+ *       are waited for only as long as the Check has left; past that the task is cancelled —
+ *       the thread interrupted, the rendering stopped between pages, no model call started — and
+ *       the document is OUT_OF_TIME (REQ-DOC-040, G8);</li>
  *   <li>the model's output is returned as text and never interpreted; a response with no text
  *       is {@code Read("")} — whether an empty reading is a usable one is the caller's call.</li>
  * </ol>
  *
  * <p>Failure translation (REQ-DOC-029; A.4.9, E.1.5): any exception out of Spring AI or its
  * HTTP client becomes a recorded READING_FAILED outcome naming the exception's type and
- * message, logged at debug with the cause. Neither the document's bytes nor the model's output
+ * message, logged at debug with the cause; a PDF whose pages cannot be rendered is
+ * READING_FAILED naming the rendering exception, and one over the renderer's bounds is
+ * READING_FAILED with the bound in the detail (never TOO_LARGE: the document itself is within
+ * the maximum file size, REQ-DOC-042). Neither the document's bytes nor the model's output
  * is ever logged or put in a detail. Stateless: nothing is kept between calls (G9).
  */
 @Component
@@ -75,15 +90,21 @@ public class SpringAiDocumentReadingAdapter implements DocumentReadingModelPort 
     /** The user message carries the document as media and no text of its own (REQ-DOC-046). */
     private static final String NO_USER_TEXT = "";
 
+    private static final MimeType PDF = MimeType.valueOf("application/pdf");
+
+    private final PdfPageRenderer pages = new PdfPageRenderer();
     private final DocumentAccessProperties documents;
     private final ObjectProvider<ChatModel> readingModel;
+    private final long maxFileSizeBytes;
 
     public SpringAiDocumentReadingAdapter(
             DocumentAccessProperties documents,
+            CheckLimitsProperties limits,
             @Qualifier(DocumentReadingModelConfiguration.DOCUMENT_READING_MODEL)
             ObjectProvider<ChatModel> readingModel) {
         this.documents = Objects.requireNonNull(documents, "documents");
         this.readingModel = Objects.requireNonNull(readingModel, "readingModel");
+        this.maxFileSizeBytes = Objects.requireNonNull(limits, "limits").maxFileSize().toBytes();
     }
 
     @Override
@@ -117,20 +138,21 @@ public class SpringAiDocumentReadingAdapter implements DocumentReadingModelPort 
             return unreadable(UnreadableReason.OUT_OF_TIME,
                     "the Check's timeout was reached before the document-reading step");
         }
-        // 4. one prompt, two parts: the configured instruction and the document as media
-        Media document = Media.builder()
-                .mimeType(mimeType)
-                .data(content)
-                .name("document." + mimeType.getSubtype())
-                .build();
-        Prompt prompt = new Prompt(
-                new SystemMessage(instruction),
-                UserMessage.builder().text(NO_USER_TEXT).media(document).build());
-        log.debug("DOC reading model: calling model \"{}\" with one {} document of {} byte(s), "
-                + "{} ms left", configuration.model(), mimeType, content.length, remaining.toMillis());
-
-        // 5. the call, bounded by the remaining time
-        FutureTask<ChatResponse> call = new FutureTask<>(() -> model.call(prompt));
+        // 4. + 5. one prompt, two parts — the configured instruction and the document as media —
+        // built (a PDF rendered to its page images) and called within the remaining time
+        String modelName = configuration.model();
+        FutureTask<ChatResponse> call = new FutureTask<>(() -> {
+            Prompt prompt = new Prompt(
+                    new SystemMessage(instruction),
+                    UserMessage.builder().text(NO_USER_TEXT).media(mediaOf(content, mimeType, deadline)).build());
+            if (Thread.currentThread().isInterrupted()) {
+                throw new CancellationException("cancelled before the model call");
+            }
+            log.debug("DOC reading model: calling model \"{}\" with one {} document of {} byte(s), "
+                    + "{} ms left", modelName, mimeType, content.length,
+                    Duration.between(Instant.now(), deadline).toMillis());
+            return model.call(prompt);
+        });
         Thread worker = Thread.ofVirtual().name("doc-reading-model").unstarted(call);
         worker.start();
         ChatResponse response;
@@ -148,6 +170,10 @@ public class SpringAiDocumentReadingAdapter implements DocumentReadingModelPort 
             return unreadable(UnreadableReason.READING_FAILED,
                     "the document-reading call was interrupted");
         } catch (ExecutionException e) {
+            if (e.getCause() instanceof PdfPageRenderer.Refused refused) {
+                log.debug("DOC reading model: the scanned PDF was not sent: {}", refused.getMessage());
+                return unreadable(refused.reason(), refused.getMessage());
+            }
             // translation only: the model's failure becomes the document's recorded outcome
             Throwable cause = e.getCause() == null ? e : e.getCause();
             log.debug("DOC reading model: the call failed: {}", describe(cause), cause);
@@ -158,6 +184,46 @@ public class SpringAiDocumentReadingAdapter implements DocumentReadingModelPort 
         String text = textOf(response);
         log.debug("DOC reading model: {} character(s) returned", text.length());
         return new Read<>(text);
+    }
+
+    /**
+     * The document as the user message's media: an image as itself; a PDF as the PNG images of
+     * its pages, in page order — still one document in one call (REQ-DOC-057).
+     */
+    private List<Media> mediaOf(byte[] content, MimeType mimeType, Instant deadline)
+            throws PdfPageRenderer.Refused {
+        if (!PDF.equalsTypeAndSubtype(mimeType)) {
+            return List.of(Media.builder()
+                    .mimeType(mimeType)
+                    .data(content)
+                    .name("document." + mimeType.getSubtype())
+                    .build());
+        }
+        List<byte[]> images;
+        try {
+            images = pages.render(content, maxFileSizeBytes, deadline);
+        } catch (PdfPageRenderer.Refused refused) {
+            throw refused;
+        } catch (Exception e) {
+            // translation only: a PDF the renderer cannot draw is the document's READING_FAILED
+            log.debug("DOC pdf pages: rendering failed: {}", describe(e), e);
+            throw new PdfPageRenderer.Refused(UnreadableReason.READING_FAILED,
+                    "the scanned PDF could not be rendered to page images: " + describe(e));
+        }
+        List<Media> media = new ArrayList<>(images.size());
+        long total = 0;
+        for (int page = 0; page < images.size(); page++) {
+            byte[] image = images.get(page);
+            total += image.length;
+            media.add(Media.builder()
+                    .mimeType(MimeTypeUtils.IMAGE_PNG)
+                    .data(image)
+                    .name("document-page-" + (page + 1) + ".png")
+                    .build());
+        }
+        log.debug("DOC pdf pages: {} page(s) rendered to PNG at {} DPI, {} byte(s) in all",
+                images.size(), (int) PdfPageRenderer.DPI, total);
+        return media;
     }
 
     /** The first generation's text; {@code ""} when the response carries none. */

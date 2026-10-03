@@ -1,0 +1,539 @@
+{
+  "runId": "20261003T131641Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": "the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er",
+  "groups": {
+    "doc-path": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 22,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "doc-manual": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 5,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "doc-path",
+      "name": "A path with no file is NOT_FOUND, its detail naming the path",
+      "tcs": [
+        "TC-DOC-002"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 20.0,
+      "checksCreated": [
+        873
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-path loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-blob loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-manual loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture doc-noreq loaded (m1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-path-t1003131641 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-path",
+      "name": "'..' segments are resolved before the storage-root check",
+      "tcs": [
+        "TC-DOC-003"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "An absolute path outside the storage root is refused unopened",
+      "tcs": [
+        "TC-DOC-004"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "A symbolic link pointing outside the storage root is refused unopened",
+      "tcs": [
+        "TC-DOC-006"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "The storage root is taken only from the environment setting",
+      "tcs": [
+        "TC-DOC-007"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Unsupported formats by content signature: .docx, random bytes, a .pdf name without PDF content",
+      "tcs": [
+        "TC-DOC-016"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "A password-protected PDF is READING_FAILED",
+      "tcs": [
+        "TC-DOC-017"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "A damaged PDF and a damaged workbook are READING_FAILED",
+      "tcs": [
+        "REQ-DOC-029"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": ".xlsx read by table extraction: 1 table of 3 rows x 2 columns with the cell values",
+      "tcs": [
+        "TC-DOC-043"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": ".xls (BIFF8) read by table extraction",
+      "tcs": [
+        "REQ-DOC-026"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Exactly 10 MB is READ; 10 MB + 1 byte is TOO_LARGE naming both sizes",
+      "tcs": [
+        "TC-DOC-026",
+        "TC-DOC-018",
+        "TC-DOC-025"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Exactly the maximum rows (100) is accepted: 100 outcomes, one per row",
+      "tcs": [
+        "TC-DOC-021",
+        "TC-DOC-044"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Documents come only by the version's fetch mode (path); its version and its type column are used",
+      "tcs": [
+        "TC-DOC-032",
+        "TC-DOC-033",
+        "TC-DOC-036",
+        "AC-DOC-002"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Read content is handed to the Check Engine with its outcome (GPA 3.6)",
+      "tcs": [
+        "TC-DOC-046"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Host files are opened for reading only and stay unchanged after the Check",
+      "tcs": [
+        "TC-DOC-048",
+        "TC-DOC-049"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "The document source query is sent exactly as written; the request number is one bound value",
+      "tcs": [
+        "TC-DOC-050",
+        "AC-DOC-054"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "No host endpoint is called by the fetch, the Approval API included",
+      "tcs": [
+        "TC-DOC-051"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Instruction-like text inside a document stays content",
+      "tcs": [
+        "TC-DOC-061"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "A PDF without a text layer is read in the document-reading step",
+      "tcs": [
+        "TC-DOC-055"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "Document-reading model: its own configuration, fixed instruction plus the document only, no tool, one document per call",
+      "tcs": [
+        "TC-DOC-056",
+        "TC-DOC-060",
+        "TC-DOC-062",
+        "TC-DOC-063"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 873 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "A document source query over the maximum rows fails every required type, nothing opened",
+      "tcs": [
+        "TC-DOC-020"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-path",
+      "name": "An error of the MCP channel on the document source query fails every required type",
+      "tcs": [
+        "TC-DOC-022"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-manual",
+      "name": "manual fetch reads only the Check's own uploads; another Check's upload is never supplied",
+      "tcs": [
+        "TC-DOC-011",
+        "TC-DOC-031"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.3,
+      "checksCreated": [
+        874,
+        875
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003131641 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start doc-manual-t1003131641 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "uploads of A and B -> 201",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "doc-manual",
+      "name": "manual mode touches no host document",
+      "tcs": [
+        "TC-DOC-041"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-manual",
+      "name": "Upload of exactly the maximum file size keeps its content (read at fetch)",
+      "tcs": [
+        "TC-DOC-028"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-manual",
+      "name": "An oversized upload is reported TOO_LARGE at fetch",
+      "tcs": [
+        "TC-DOC-029",
+        "TC-DOC-027"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "doc-manual",
+      "name": "Format from the content signature, not the file name: scan.pdf holding a PNG goes to the model as an image",
+      "tcs": [
+        "TC-DOC-054"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "A path with no file is NOT_FOUND, its detail naming the path",
+      "mode": "mode [aias.registry.package-directory=local/e2e-doc/packages, aias.documents.storage-root=local/e2e-doc/root, aias.check.max-rows=100, aias.check.timeout=PT5M, aias.check.comparison-model.model=gemini-3.8-flash, aias.documents.reading-model.tier=APPROVED, aias.documents.reading-model.instruction=Transcribe the document text exactly., spring.ai.openai.base-url=http://127.0.0.1:7292/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T17:16:49"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T17:17:38"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 873,
+      "serviceCode": "doc-path-t1003131641",
+      "requestNumber": "E2E-t1003131641-1001' OR '1'='1",
+      "what": "started by 'A path with no file is NOT_FOUND, its detail naming the path'"
+    },
+    {
+      "checkId": 874,
+      "serviceCode": "doc-manual-t1003131641",
+      "requestNumber": "E2E-t1003131641-502",
+      "what": "started by 'manual fetch reads only the Check's own uploads; another Check's upload is never supplied'"
+    },
+    {
+      "checkId": 875,
+      "serviceCode": "doc-manual-t1003131641",
+      "requestNumber": "E2E-t1003131641-501",
+      "what": "started by 'manual fetch reads only the Check's own uploads; another Check's upload is never supplied'"
+    }
+  ]
+}

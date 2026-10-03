@@ -17,8 +17,9 @@ import java.util.Objects;
 
 /**
  * The {@link PdfTextReader} over Apache PDFBox (REQ-DOC-025): the document is loaded from its
- * bytes and its text layer extracted with {@link PDFTextStripper}. The only class of DOC that
- * touches PDFBox.
+ * bytes and its text layer extracted with {@link PDFTextStripper}. PDFBox is touched only in
+ * DOC's adapter package: here, and in {@link PdfPageRenderer}, which renders a PDF whose text
+ * layer is blank to page images for the document-reading model.
  *
  * <p>Failure translation (REQ-DOC-029; A.4.9, E.1.5): a damaged, encrypted or
  * password-protected PDF — an {@code IOException} (PDFBox's {@code InvalidPasswordException}

@@ -3018,21 +3018,43 @@ def doc_injection(ctx, s):
     s.expect(len(reads) == 3, "3 reading calls (the scanned PDF and 2 images; the text PDF triggers none)", len(reads))
 
 
+def media_parts(call):
+    """The media parts (image_url / file) of a recorded reading call's user message."""
+    msgs = call.get("messages") or []
+    content = msgs[1].get("content") if len(msgs) > 1 else None
+    return [p for p in (content if isinstance(content, list) else [])
+            if isinstance(p, dict) and p.get("type") in ("image_url", "file")]
+
+
+def photo_url_lengths():
+    """The data-URL lengths the model tap records for photo-1.png / photo-2.png (to tell them from page images)."""
+    import base64
+    return {len("data:image/png;base64,") + len(base64.b64encode((DOC_STORAGE / f"2026/1001/photo-{i}.png").read_bytes()))
+            for i in (1, 2)}
+
+
+def is_photo_call(call):
+    media = media_parts(call)
+    return len(media) == 1 and (media[0].get("image_url") or {}).get("length") in photo_url_lengths()
+
+
 @scenario("doc-path", "A PDF without a text layer is read in the document-reading step", ["TC-DOC-055"], model=True)
 def doc_scanned_pdf(ctx, s):
     o = c1(ctx, s)
-    pdf_calls = [c for c in o.reading_calls() if "application/pdf" in json.dumps(c["messages"])]
-    s.expect(len(pdf_calls) == 1, "the reading model receives 1 call carrying the PDF (model tap)", len(pdf_calls))
+    reads = o.reading_calls()
+    s.expect(not any('"file"' in json.dumps(c["messages"]) or "application/pdf" in json.dumps(c["messages"])
+                     for c in reads), "no reading call carries a `file` part or application/pdf media (model tap)", "")
+    scan_calls = [c for c in reads if not is_photo_call(c)]
+    s.expect(len(scan_calls) == 1, "the scanned PDF -> exactly 1 reading call (one document per call, model tap)",
+             len(scan_calls))
+    media = media_parts(scan_calls[0]) if scan_calls else []
+    s.expect(len(media) == 1 and all((p.get("image_url") or {}).get("mediaType") == "image/png" for p in media),
+             "that call carries the PDF's 1 page as 1 image/png part, in the one user message", media)
     s.expect(re_count(r"DOC pdf text: 1 page\(s\), [01] character\(s\) extracted", o.log) == 1,
              "log: the text layer is blank, so the PDF goes to the document-reading step", "")
-    d = found(o, 13)
-    if d.get("unreadableReason") == "READING_FAILED" and "Invalid content part type: file" in (d.get("detail") or ""):
-        # the local provider (Gemini's OpenAI-compatible endpoint) refuses a PDF sent as a `file` content part
-        raise Skip("NOT-EXERCISABLE", "the local free provider (Gemini OpenAI-compatible endpoint) answers 400 "
-                   "'Invalid content part type: file' to the PDF media part, so the expected READ outcome cannot be "
-                   "produced locally; the routing half (blank text layer -> 1 reading call carrying application/pdf) "
-                   "is asserted green")
-    expect_doc(s, d, "id-scan.pdf: ID_CARD READ", "ID_CARD", "READ")
+    s.expect(re_count(r"DOC pdf pages: 1 page\(s\) rendered to PNG at 150 DPI", o.log) == 1,
+             "log: the scanned PDF rendered to 1 page image (in memory)", "")
+    expect_doc(s, found(o, 13), "id-scan.pdf: ID_CARD READ", "ID_CARD", "READ")
 
 
 @scenario("doc-path", "Document-reading model: its own configuration, fixed instruction plus the document only, no tool, "
@@ -3057,7 +3079,7 @@ def doc_reading_calls(ctx, s):
         s.expect(len(parts) == 1 and len(media) == 1,
                  f"TC-DOC-060/063 call {i}: besides the instruction exactly 1 part, the document", msgs[1:] if msgs else "")
         s.expect(not c.get("toolsPresent"), f"TC-DOC-062 call {i}: 0 tools declared", c.get("keys"))
-    images = [c for c in reads if '"image/png"' in json.dumps(c["messages"])]
+    images = [c for c in reads if is_photo_call(c)]
     s.expect(len(images) == 2, "TC-DOC-063: 2 image documents -> 2 calls, 1 image each", len(images))
     for i in (14, 15):
         expect_doc(s, found(o, i), f"photo-{i - 13}.png READ", "ANNEX", "READ")
