@@ -19,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * The scheduled purge of ended Check runs (SVC-API {@code ReportPurgeService}; ADR-RPT-004,
@@ -83,14 +84,25 @@ public class ReportPurgeService {
         // 3 — one transaction per Check run
         int deleted = 0;
         for (Long checkId : expired) {
+            // the deletion's own failure, kept apart: when the rollback fails as well, the exception that leaves
+            // the template is the rollback's, and the database's message of the deletion would be lost (REQ-RPT-054)
+            AtomicReference<DataAccessException> deletionFailure = new AtomicReference<>();
             try {
-                Integer rows = oneRunTransaction.execute(status -> checkRuns.deleteEnded(checkId, cutOff));
+                Integer rows = oneRunTransaction.execute(status -> {
+                    try {
+                        return checkRuns.deleteEnded(checkId, cutOff);
+                    } catch (DataAccessException deletionFailed) {
+                        deletionFailure.set(deletionFailed);
+                        throw deletionFailed;
+                    }
+                });
                 if (rows != null && rows > 0) {
                     deleted++;
                 }
-            } catch (DataAccessException | TransactionException deletionFailed) {
+            } catch (DataAccessException | TransactionException failed) {
+                RuntimeException cause = deletionFailure.get() != null ? deletionFailure.get() : failed;
                 log.warn(ReportStoreTexts.english(PURGE_KEPT, checkId,
-                        NestedExceptionUtils.getMostSpecificCause(deletionFailed).getMessage()));
+                        NestedExceptionUtils.getMostSpecificCause(cause).getMessage()));
             }
         }
 

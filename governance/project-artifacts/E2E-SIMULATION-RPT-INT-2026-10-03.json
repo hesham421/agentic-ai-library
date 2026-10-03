@@ -1,0 +1,3195 @@
+{
+  "runId": "20261003T115316Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "registry": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "decisions": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "refusals": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "rpt-store": {
+      "passed": 18,
+      "failed": 1,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "int-flow": {
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 1,
+      "error": 0
+    },
+    "rpt-purge": {
+      "passed": 5,
+      "failed": 1,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "rpt-inprocess": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 20,
+      "error": 0
+    },
+    "int-inprocess": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 1,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "registry",
+      "name": "The four fixture services are listed with their fetch modes, without SQL or connection",
+      "tcs": [
+        "TC-REG-014",
+        "TC-REG-005",
+        "TC-REG-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-manual: available, fetch manual, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-approval: available, fetch manual, approval True",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path: available, fetch path, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-blob: available, fetch blob, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path requires TRANSCRIPT and ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no SQL / connection detail in the list",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "The load report shows both connections ACTIVATED and every fixture package loaded",
+      "tcs": [
+        "TC-REG-008",
+        "TC-REG-051",
+        "TC-REG-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/load-results -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "rows of the latest load run only",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-oracle ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-jdbc ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-manual REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-approval REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-path REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-blob REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no REJECTED row",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "An unknown service code is 404 REG-404-SERVICE-NOT-FOUND",
+      "tcs": [
+        "TC-REG-016"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/no-such-service-e2e -> 404 REG-404-SERVICE-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "A service code is read trimmed and case-insensitively",
+      "tcs": [
+        "TC-REG-075",
+        "TC-REG-073"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/DEMO-Manual -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upper/mixed case answers demo-manual",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/%20%20Demo-Path%20 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "space-padded code answers demo-path",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "decisions",
+      "name": "Decisions on a COMPLETED demo-manual Check (no Approval API)",
+      "tcs": [
+        "TC-INT-014",
+        "TC-INT-035",
+        "TC-INT-036",
+        "TC-INT-003",
+        "TC-RPT-039",
+        "TC-RPT-041",
+        "TC-RPT-042",
+        "TC-RPT-047",
+        "TC-RPT-049"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 16.5,
+      "checksCreated": [
+        510
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript-pass.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 510 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision agreement read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision without decidedBy -> 400 RPT-400-DECISION-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision code MAYBE -> 400 RPT-400-DECISION-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "recorded decision answered, approvalApiExecuted=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "second decision -> 409 RPT-409-DECISION-ALREADY-RECORDED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the report carries the first decision",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list of the request shows the decision",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision agreement read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision agreement (v1, COMPLIANT, APPROVED) counted +1 (2 -> 3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "agreement without serviceCode -> 400",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "decisions",
+      "name": "Decisions refused on a non-completed and an unknown Check",
+      "tcs": [
+        "TC-RPT-040",
+        "TC-RPT-045"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [
+        511
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision on AWAITING_DOCUMENTS -> 409 RPT-409-CHECK-NOT-COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision on an unknown Check -> 404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Start refusals: unknown service, incomplete start, unreadable body, unsupported Content-Type",
+      "tcs": [
+        "TC-CHK-003",
+        "TC-CHK-001",
+        "TC-INT-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks -> 422 CHK-422-SERVICE-NOT-AVAILABLE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no identifier returned",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start without employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start with a blank employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "unreadable JSON -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Content-Type text/plain -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Upload refusals and limits on a waiting manual Check",
+      "tcs": [
+        "TC-INT-002",
+        "TC-DOC-013",
+        "TC-DOC-014",
+        "TC-INT-033",
+        "TC-DOC-027",
+        "TC-INT-009",
+        "TC-INT-008",
+        "TC-INT-100",
+        "TC-DOC-015",
+        "TC-INT-010"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        512
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "type the version does not require -> 422",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0-byte file -> 400 DOC-400-INCOMPLETE-UPLOAD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no documentType part -> 400",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a path-shaped file name is accepted as text -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "file name kept as text",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a second upload of the same type -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "file above the 10 MB maximum -> 201 with a notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "oversized=true with notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both same-type uploads listed in order",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC listing -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC listing equals the INT relay",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request above the 12 MB request limit -> 413",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload for an unknown Check -> 404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Maximum uploads per Check: 20 accepted, the 21st refused",
+      "tcs": [
+        "TC-INT-097",
+        "TC-DOC-071",
+        "TC-DOC-072"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.4,
+      "checksCreated": [
+        513
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "20 uploads accepted",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload 21 -> 422 DOC-422-UPLOAD-LIMIT-REACHED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Confirmation of an unknown Check; reads of unknown Checks",
+      "tcs": [
+        "TC-CHK-038",
+        "TC-INT-088",
+        "TC-INT-094",
+        "TC-RPT-030"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/987654321/upload-confirmation -> 404 CHK-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/987654321/required-document-types -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/987654321 -> 404 CHK-404-ACTIVE-CHECK-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Non-numeric identifiers are refused by each module's own code",
+      "tcs": [
+        "TC-INT-005"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports/abc -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc/required-document-types -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/upload-confirmation -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/decision -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc -> 400 RPT-400-CHECK-ID-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/abc -> 400 CHK-400-CHECK-ID-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/uploaded-documents?checkId=abc -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/uploaded-documents -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Lists of a request without their keys are refused",
+      "tcs": [
+        "TC-RPT-035",
+        "TC-INT-090"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?requestNumber=x -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "No retention period configured: the scheduled purge is skipped and logged, nothing deleted",
+      "tcs": [
+        "TC-RPT-052"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 15.8,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-a (rpt-a-t1003115316) loaded (R1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "log: 'Report purge skipped: no valid report retention period is configured.' (purge every 10 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no purge deleted anything",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "an ended Check run older than 1 day exists (precondition)",
+          "detail": "[]"
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Version 2 of SVC-A: a NEEDS_MANUAL_REVIEW Check decided APPROVED (TC-RPT-047 precondition)",
+      "tcs": [],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.3,
+      "checksCreated": [
+        514
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "v2 Check COMPLETED / NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED -> 201",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "No unfinished Check at a start: the unfinished-Check list is empty (start-up recovery: 0)",
+      "tcs": [
+        "TC-RPT-026"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.6,
+      "checksCreated": [
+        515
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-a (rpt-a-t1003115316) loaded (R2)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-b (rpt-b-t1003115316) loaded (R2)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-q (rpt-q-t1003115316) loaded (R2)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-p (rpt-p-t1003115316) loaded (R2)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "listUnfinishedChecks() returned an empty list (recovery log: 0 unfinished)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-b-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Path Check of version 3 created RUNNING and read back; the start answers before the report (40 s pipeline)",
+      "tcs": [
+        "TC-RPT-001",
+        "TC-INT-027"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 41.0,
+      "checksCreated": [
+        516
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-p-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-027: the start is answered at once (0.03 s), RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-027: right after the answer the Check is RUNNING with no Overall Status",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-001: API-RPT-001 answers serviceCode, versionNumber 3, fetchMode path, requestNumber '1001', employeeId 'E-2041', status RUNNING, startedAt",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "exactly 1 Check run stored for the request",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the pipeline took ~40 s (41 s) and COMPLETED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Host identifiers kept exactly as received (slash, leading/trailing spaces, case)",
+      "tcs": [
+        "TC-RPT-002"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [
+        517
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-b-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "requestNumber '00-1001/A' and employeeId ' e.2041 ' byte-identical",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Confirmation marks the Check RUNNING with its running time; it then completes COMPLIANT",
+      "tcs": [
+        "TC-RPT-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 15.5,
+      "checksCreated": [
+        518
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "AWAITING_DOCUMENTS with no running time",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "status RUNNING and runningSince = the confirmation time",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED / COMPLIANT, runningSince kept",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Employee Decision APPROVED by E-3307 recorded; Overall Status and findings unchanged",
+      "tcs": [
+        "TC-RPT-038"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "APPROVED / E-3307 -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision {APPROVED, 'E-3307', approvalApiExecuted false, decidedAt set}",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "overallStatus and findings unchanged",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Report contents: finding with its evidence and note, stored text returned as data, order kept",
+      "tcs": [
+        "TC-RPT-029",
+        "TC-RPT-032",
+        "TC-RPT-013"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        519
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-029: one finding holds 'GPA at least 3.0', NOT_SATISFIED, 'GPA = 2.7', 'Below the 3.0 minimum'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-013: findings at positions 1, 2, 3 in the order handed over",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-032: the evidence is the identical character string",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-032: response content type application/json (no HTML)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-032: carried as a JSON string value",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "REJECTED (TC-RPT-047 row) -> 201",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Every Check its own record: a new Check of request 1001 beside a COMPLETED, APPROVED one",
+      "tcs": [
+        "TC-RPT-036"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        520,
+        521
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check of 1001 COMPLIANT, 3 findings",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a new checkId with 0 findings and decision null",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the earlier Check unchanged (3 findings, APPROVED)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)",
+      "tcs": [
+        "TC-RPT-047"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 6.8,
+      "checksCreated": [
+        522,
+        523,
+        524,
+        525,
+        526,
+        527
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A3 COMPLETED COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A3 APPROVED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A4 COMPLETED COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A4 APPROVED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A5 COMPLETED COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A5 REJECTED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A7 COMPLETED NOT_COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A7 REJECTED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "U2 COMPLETED COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-a-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "U3 COMPLETED NOT_COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/decision-agreement?serviceCode=rpt-a-t1003115316 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "rows (3,COMPLIANT,APPROVED,4) (3,COMPLIANT,REJECTED,1) (3,NOT_COMPLIANT,REJECTED,2) (2,NEEDS_MANUAL_REVIEW,APPROVED,1); the 3 undecided Checks not counted",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Unread service query request_details ('more than 500 rows') kept; NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-RPT-015"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        528
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-q-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED / NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 unread query request_details with detail 'more than 500 rows'",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "No document content kept: a READ document entry and the RPT_CHECK_DOCUMENT columns",
+      "tcs": [
+        "TC-RPT-022"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.2,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the entry holds exactly position (1), documentType, sourceMode, readStatus READ, unreadableReason (null), detail",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no part of the document's text is returned",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no RPT_CHECK_DOCUMENT column holds raw text, image data or file bytes (data dictionary)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no stored detail holds the document's text",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "No file opened: a stored detail naming a path is returned as text (the path is a FIFO)",
+      "tcs": [
+        "TC-RPT-056"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "detail returned as the text naming /Users/ezzat/my project/agentic-ai-library/local/e2e-rpt/data/att/1001/t.pdf",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "answered without waiting on the FIFO (0.01 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 opens of the file: no reader holds the FIFO (ENXIO)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Listing capped at 100 with the total: 130 Checks of request 1002, 101 of request 1003",
+      "tcs": [
+        "TC-RPT-034",
+        "TC-RPT-037"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.7,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "130 Checks started for request 1002",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?serviceCode=rpt-b-t1003115316&requestNumber=1002 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 1002: exactly 100 Checks, total 130",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 1002: the 100 newest, newest first",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "101 Checks started for request 1003",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?serviceCode=rpt-b-t1003115316&requestNumber=1003 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 1003: exactly 100 Checks, total 101",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 1003: the 100 newest, newest first",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Read filters bound as parameters: requestNumber 1001' OR '1'='1 lists nothing",
+      "tcs": [
+        "TC-RPT-058"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?serviceCode=rpt-a-t1003115316&requestNumber=1001%27+OR+%271%27%3D%271 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "checks empty, total 0",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "control: request 1001 itself lists its 2 Checks",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Failed Check read with its reason: the provider answers 503 -> MODEL_UNAVAILABLE",
+      "tcs": [
+        "TC-RPT-031"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 4.1,
+      "checksCreated": [
+        760
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-b-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "200; FAILED, MODEL_UNAVAILABLE, failureDetail naming 'provider answered 503', overallStatus null",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "A RUNNING Check past its timeout is stored FAILED / TIMED_OUT with its detail and end time",
+      "tcs": [
+        "TC-RPT-021"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 60.3,
+      "checksCreated": [
+        761
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-b-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "RUNNING (the provider holds its answer 120 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED, failureReason TIMED_OUT, a failureDetail, endedAt, overallStatus null, 0 findings",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "ended after the 60 s timeout (60 s)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "A Check awaiting documents ends FAILED / UPLOAD_WINDOW_EXPIRED, never RUNNING",
+      "tcs": [
+        "TC-RPT-063"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "FAILED, UPLOAD_WINDOW_EXPIRED, its detail and endedAt, overallStatus null, runningSince null, 0 findings",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "Unfinished Checks listed oldest first: a restart ends AWAITING (older) then RUNNING (newer); a COMPLETED one is untouched",
+      "tcs": [
+        "TC-RPT-025"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 8.9,
+      "checksCreated": [
+        762,
+        763
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start rpt-b-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start rpt-b-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the newer Check is RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the app is stopped abruptly while the newer Check is RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture int-m2 (int-m2-t1003115316) loaded (R4)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture approve-service (approve-service-t1003115316) loaded (R4)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture int-mal (int-mal-t1003115316) loaded (R4)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture int-plain (int-plain-t1003115316) loaded (R4)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both unfinished Checks were listed (ended INTERRUPTED)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "handled in list order: the older (AWAITING) before the newer (RUNNING) - oldest first",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the COMPLETED Check is absent from the list (unchanged)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "An employee unknown to any directory is accepted; no server-rendered report page",
+      "tcs": [
+        "TC-INT-029",
+        "TC-INT-022"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [
+        764
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-plain-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-029: 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-029: the Check's employee is 'X-999'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-022: GET /checks/{id}/view -> 404, no HTML report",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "Uploads alone never continue the Check: TRANSCRIPT + ID_CARD uploaded, no confirmation",
+      "tcs": [
+        "TC-INT-011"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.1,
+      "checksCreated": [
+        765
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-m2-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /checks/{id} -> AWAITING_DOCUMENTS",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "Neither an upload nor a confirmation records a decision",
+      "tcs": [
+        "TC-INT-012"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        766
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-m2-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "right after the confirmation: decision null",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "after the end (COMPLETED): decision null",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "The uploaded-documents read relays Document Access's listing unchanged (300 KB + 60 MB)",
+      "tcs": [
+        "TC-INT-095"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.9,
+      "checksCreated": [
+        767
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-m2-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "t.pdf (300 KB) -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "id.png (60 MB) -> 201 with the oversized notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/767/documents -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access's listUploadedDocuments received exactly 1 call, with checkId 767 (debug log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 entries in upload order: TRANSCRIPT t.pdf 307200 false, ID_CARD id.png 62914560 true",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "each with uploadedDocumentId and uploadedAt as Document Access returned them, no content field",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "APPROVED through the Approval API: recorded as executed; the only host connection is that call",
+      "tcs": [
+        "TC-RPT-043",
+        "TC-INT-024"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.7,
+      "checksCreated": [
+        768,
+        769
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start approve-service-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "IDLE: approve-service version 2 Check COMPLETED / COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start approve-service-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "EXEC: approve-service version 2 Check COMPLETED / COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "approval stub ok",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-024: exactly one HTTP call to the Approval API (stub)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-024: no host query (MCP tap) during the decision",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-INT-024: no INT class opens a database connection; the one HTTP client is the Approval API adapter (source scan)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-043: decision APPROVED with approvalApiExecuted true",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "A refusal after an executed approval: REJECTED recorded while the Approval API holds; the APPROVED answers 409 and is logged",
+      "tcs": [
+        "TC-INT-021"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 5.7,
+      "checksCreated": [
+        770
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start approve-service-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "R643: approve-service version 2 Check COMPLETED / COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "approval stub: 200 after a 4 s delay",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 2 (REJECTED, while the stub holds) -> 201, recorded",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 1 answered",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request 1 -> 409 RPT-409-DECISION-ALREADY-RECORDED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "detail en: 'Check 770 already has an Employee Decision.'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the approval was executed (1 stub call, log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the service log names Check, request 'R-643' and the executed approval",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the Report Store keeps the REJECTED decision",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "The decision path answers in the standard form when the approval definition cannot be read",
+      "tcs": [
+        "TC-INT-044"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "REG never deletes a stored version and every Check is pinned to one, so the approval definition read (CON-REG-012) never answers not-found. Partial evidence (an unusable stored definition 'approve-it' -> the same INT-500 path) asserted green in this scenario",
+      "durationSec": 1.7,
+      "checksCreated": [
+        771
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-mal-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a COMPLETED Check of a version whose approval definition is unusable ('approve-it')",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: APPROVED -> 500 INT-500 (standard form)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: application/problem+json, the INT-500 detail",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: the host receives no call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: the service log names the Check identifier",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "partial: the Check holds no decision",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "Host Integration keeps nothing after answering (tables, multipart storage, live heap)",
+      "tcs": [
+        "TC-INT-023"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 45.1,
+      "checksCreated": [
+        772,
+        773
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-plain-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start int-plain-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1. upload to Check 718 -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2. decision on Check 719 -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Host Integration has no table",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no copy of the file in the multipart temporary storage",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "live-object heap dump of the app (jcmd GC.heap_dump)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "copies found in the live heap are attributed to their holders",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no live Host Integration object holds a copy of the file or its name (182 holder chain(s) of the live heap attributed, none through io.agenticai.integration)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "holders of the copies (first level): Object[], java.nio.HeapByteBuffer, org.apache.tomcat.util.buf.ByteChunk",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the file is listed by Document Access",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the decision is held by the Report Store",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "An unexpected failure (the database paused) is answered INT-500 without internals",
+      "tcs": [
+        "TC-INT-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 8.7,
+      "checksCreated": [
+        774
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start int-plain-t1003115316 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "HTTP 500, code INT-500 while the Report Store's database is unreachable",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "detail en: 'The request could not be completed because of an unexpected error.'; no stack trace",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "after the outage: no decision was recorded",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "int-flow",
+      "name": "A COMPLETED compliant Check of an approval-enabled version, left undecided: no Approval API call; the Report Store never approves",
+      "tcs": [
+        "TC-INT-015",
+        "TC-RPT-044"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "decision null after 64 s without a decision handed over",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 Approval API calls for its request (stub)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-RPT-044: no RPT class makes an outbound HTTP call (source scan)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "Purge with retention 1 day: an expired Check run is deleted with all its records (404)",
+      "tcs": [
+        "TC-RPT-051"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 680.9,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "at least 3 expired Check runs with findings exist",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "another session locks a Finding of Check 125 and the run row of Check 124",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-a (rpt-a-t1003115316) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-b (rpt-b-t1003115316) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-q (rpt-q-t1003115316) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-p (rpt-p-t1003115316) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "before: Check 123 stored with 2 findings, 1 documents, decision None",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 rows in RPT_CHECK_RUN, RPT_FINDING, RPT_CHECK_DOCUMENT, RPT_UNREAD_QUERY (hard delete, cascade)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/123 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "A Check run inside the retention period is kept by the purge",
+      "tcs": [
+        "TC-RPT-050"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "Check 518 (ended minutes ago, retention 1 day) still stored with all its records and decision",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "Purge outcome logged: 'Report purge deleted N Check runs ended before <cut-off>'",
+      "tcs": [
+        "TC-RPT-054"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the closing line 'Report purge deleted {n} Check runs ended before {cutOff}.' is logged",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "n = the Check runs ended before the cut-off and deleted (12; 14 expired, 2 kept)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "runs ended after the cut-off are untouched",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "cut-off = purge time - 1 day (2026-10-02 16:09:10.010945+04:00)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "A failing deletion keeps that Check run whole; the others are deleted and counted",
+      "tcs": [
+        "TC-RPT-060"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 109.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "Check 125 (a Finding locked) still stored with all its records",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its deletion failed (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "after the lock is released the next purge deletes Check 125 whole (0 rows in the four tables)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "Purge failure logged at WARN with its Check run and cause, before the closing line",
+      "tcs": [
+        "TC-RPT-064"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "WARN 'Report purge kept Check run 124: its deletion failed (<cause>).' before the closing line",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "the cause is the database's message (the lock wait was cancelled)",
+          "detail": "-10-03T16:09:15.096+04:00  WARN 28650 --- [agentic-ai-library] [   scheduling-1] i.a.rpt.service.ReportPurgeService       : Report purge kept Check run 124: its deletion failed (Connection is closed)."
+        },
+        {
+          "ok": true,
+          "check": "no row content appears in the purge log",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check 124 still stored with all its records",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "No access to host data: RPT reads, a decision and purge runs send 0 host queries",
+      "tcs": [
+        "TC-RPT-055"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 12.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/526 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/decision-agreement -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 queries through the host connection (MCP tap) during reads, a decision and the purge runs",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no RPT class imports the query channel types (source scan)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Incomplete Check run refused",
+      "tcs": [
+        "TC-RPT-003"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK refuses a start without employeeId (400 CHK-400-START-INCOMPLETE, refusals group) before it calls createCheckRun; no public path hands RPT a blank value",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "AWAITING_DOCUMENTS with fetch mode path refused",
+      "tcs": [
+        "TC-RPT-004"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK derives the initial status from the version's fetch mode (path -> RUNNING); step 2 is a direct INSERT into the service schema",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Manual Check starting RUNNING refused",
+      "tcs": [
+        "TC-RPT-005"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK always starts a manual Check AWAITING_DOCUMENTS",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Mark RUNNING again keeps the first running time",
+      "tcs": [
+        "TC-RPT-007"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK calls markRunning once per Check (at the confirmation); a second confirmation is refused by CHK (409 CHK-409) before RPT",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Ended Check cannot be marked RUNNING",
+      "tcs": [
+        "TC-RPT-008"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "a confirmation of an ended Check is refused by CHK (409 CHK-409-CHECK-NOT-AWAITING-DOCUMENTS) before markRunning",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Check not RUNNING cannot be completed",
+      "tcs": [
+        "TC-RPT-009"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK completes only the Check its pipeline runs",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Unknown Check on the result port",
+      "tcs": [
+        "TC-RPT-010"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK fails only Checks it created; no public path names Check 999",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Report stored whole or not at all",
+      "tcs": [
+        "TC-RPT-012"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "the outcome `PASSED` cannot reach RPT: CHK's structured output admits SATISFIED / NOT_SATISFIED / UNDETERMINED only (MODEL_OUTPUT_INVALID before RPT)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Database failure while storing a report leaves nothing stored",
+      "tcs": [
+        "TC-RPT-062"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs a fault injected on the INSERT of the second Finding \u2014 not producible through the API",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Metadata disagreeing with the Check run refused",
+      "tcs": [
+        "TC-RPT-016"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK builds the metadata from the stored run",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "COMPLIANT refused unless every finding is SATISFIED",
+      "tcs": [
+        "TC-RPT-017"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK's Overall Status rule never hands COMPLIANT with a NOT_SATISFIED finding (a scripted NOT_SATISFIED gives NOT_COMPLIANT, TC-RPT-029)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Code outside its closed list refused",
+      "tcs": [
+        "TC-RPT-018"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK passes only its own closed codes; steps 2-3 are direct writes to the service schema",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Finding without evidence refused",
+      "tcs": [
+        "TC-RPT-019"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK records a finding without evidence as UNDETERMINED with evidence 'NONE' (REQ-CHK-040) before RPT",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "UNREADABLE document without a reason refused",
+      "tcs": [
+        "TC-RPT-020"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "DOC always gives an UNREADABLE outcome its reason; step 2 is a direct INSERT",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Ended report never changes",
+      "tcs": [
+        "TC-RPT-023"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK completes a Check once; no public path calls completeCheck again",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Incomplete failure refused",
+      "tcs": [
+        "TC-RPT-059"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "CHK always gives a failure its detail",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "One Check read for the Check Engine",
+      "tcs": [
+        "TC-RPT-024"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "getCheck's result is handed to CHK in-process only; API-RPT-001 is a different operation (its fields are asserted by TC-RPT-001)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Approval API flag on a rejection refused",
+      "tcs": [
+        "TC-RPT-046"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "INT hands approvalApiExecuted=false for every REJECTED decision (TC-INT-013); step 2 is a direct UPDATE",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Unfinished Check never purged",
+      "tcs": [
+        "TC-RPT-053"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs a Check unfinished for longer than the retention period: the shortest period is 1 whole day and every restart (a purge-mode change) ends unfinished Checks INTERRUPTED; the rows cannot be aged without direct DB writes",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "rpt-inprocess",
+      "name": "Hand-over with an undeclared field cannot reach the store",
+      "tcs": [
+        "TC-RPT-061"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "structural (reflection + architecture rule over the value types) \u2014 an in-process test the no-JUnit policy excludes; no API reaches it",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "int-inprocess",
+      "name": "The upload carries the Check's own service version",
+      "tcs": [
+        "TC-INT-032"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "making version 2 current needs a load run, which happens only at an instance start, and every start ends all unfinished Checks INTERRUPTED (REQ-CHK-055, a global recovery): no Check can await uploads on version 1 while version 2 is current",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "No retention period configured: the scheduled purge is skipped and logged, nothing deleted",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-rpt/packages-v2, aias.reports.purge-schedule=*/10 * * * * *, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:53:42"
+    },
+    {
+      "scenario": "No unfinished Check at a start: the unfinished-Check list is empty (start-up recovery: 0)",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-rpt/packages-v3, aias.documents.storage-root=local/e2e-rpt/root, aias.check.timeout=PT60S, aias.check.deadline-check-interval=PT5S, aias.check.max-rows=500, aias.check.upload-window=PT2M, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:54:27"
+    },
+    {
+      "scenario": "Unfinished Checks listed oldest first: a restart ends AWAITING (older) then RUNNING (newer); a COMPLETED one is untouched",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-int/packages, aias.integration.approval.timeout=PT10S, aias.integration.upload.request-limit=70MB, spring.datasource.hikari.connection-timeout=2500, spring.datasource.hikari.validation-timeout=1000, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T15:56:49"
+    },
+    {
+      "scenario": "Purge with retention 1 day: an expired Check run is deleted with all its records (404)",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-rpt/packages-v3, aias.documents.storage-root=local/e2e-rpt/root, aias.check.timeout=PT60S, aias.check.deadline-check-interval=PT5S, aias.check.max-rows=500, aias.reports.retention-days=1, aias.reports.purge-schedule=*/10 * * * * *, spring.datasource.hikari.data-source-properties[oracle.jdbc.ReadTimeout]=5000, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T16:09:09"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T16:11:59"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 510,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T115316Z-PASS",
+      "what": "started by 'Decisions on a COMPLETED demo-manual Check (no Approval API)'"
+    },
+    {
+      "checkId": 511,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T115316Z-DEC-WAIT-ed3202",
+      "what": "started by 'Decisions refused on a non-completed and an unknown Check'"
+    },
+    {
+      "checkId": 512,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T115316Z-UPL-67495b",
+      "what": "started by 'Upload refusals and limits on a waiting manual Check'"
+    },
+    {
+      "checkId": 513,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T115316Z-MAXUP-2daf36",
+      "what": "started by 'Maximum uploads per Check: 20 accepted, the 21st refused'"
+    },
+    {
+      "checkId": 514,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-V2NMR",
+      "what": "started by 'Version 2 of SVC-A: a NEEDS_MANUAL_REVIEW Check decided APPROVED (TC-RPT-047 precondition)'"
+    },
+    {
+      "checkId": 515,
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-EXP63",
+      "what": "started by 'No unfinished Check at a start: the unfinished-Check list is empty (start-up recovery: 0)'"
+    },
+    {
+      "checkId": 516,
+      "serviceCode": "rpt-p-t1003115316",
+      "requestNumber": "1001",
+      "what": "started by 'Path Check of version 3 created RUNNING and read back; the start answers before the report (40 s pipeline)'"
+    },
+    {
+      "checkId": 517,
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "00-1001/A",
+      "what": "started by 'Host identifiers kept exactly as received (slash, leading/trailing spaces, case)'"
+    },
+    {
+      "checkId": 518,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-A1",
+      "what": "started by 'Confirmation marks the Check RUNNING with its running time; it then completes COMPLIANT'"
+    },
+    {
+      "checkId": 519,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-A6",
+      "what": "started by 'Report contents: finding with its evidence and note, stored text returned as data, order kept'"
+    },
+    {
+      "checkId": 520,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "1001",
+      "what": "started by 'Every Check its own record: a new Check of request 1001 beside a COMPLETED, APPROVED one'"
+    },
+    {
+      "checkId": 521,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "1001",
+      "what": "started by 'Every Check its own record: a new Check of request 1001 beside a COMPLETED, APPROVED one'"
+    },
+    {
+      "checkId": 522,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-A3",
+      "what": "started by 'Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)'"
+    },
+    {
+      "checkId": 523,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-A4",
+      "what": "started by 'Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)'"
+    },
+    {
+      "checkId": 524,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-A5",
+      "what": "started by 'Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)'"
+    },
+    {
+      "checkId": 525,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-A7",
+      "what": "started by 'Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)'"
+    },
+    {
+      "checkId": 526,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-U2",
+      "what": "started by 'Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)'"
+    },
+    {
+      "checkId": 527,
+      "serviceCode": "rpt-a-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-U3",
+      "what": "started by 'Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)'"
+    },
+    {
+      "checkId": 528,
+      "serviceCode": "rpt-q-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-Q",
+      "what": "started by 'Unread service query request_details ('more than 500 rows') kept; NEEDS_MANUAL_REVIEW'"
+    },
+    {
+      "checkId": "529..658",
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "1002",
+      "what": "130 Checks started by 'Listing capped at 100 with the total: 130 Checks of request 1002, 101 of request 1003' (AWAITING, expire after 2 min)"
+    },
+    {
+      "checkId": "659..759",
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "1003",
+      "what": "101 Checks started by 'Listing capped at 100 with the total: 130 Checks of request 1002, 101 of request 1003' (AWAITING, expire after 2 min)"
+    },
+    {
+      "checkId": 760,
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-U503",
+      "what": "started by 'Failed Check read with its reason: the provider answers 503 -> MODEL_UNAVAILABLE'"
+    },
+    {
+      "checkId": 761,
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-T120",
+      "what": "started by 'A RUNNING Check past its timeout is stored FAILED / TIMED_OUT with its detail and end time'"
+    },
+    {
+      "checkId": 762,
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-UNF-OLD",
+      "what": "started by 'Unfinished Checks listed oldest first: a restart ends AWAITING (older) then RUNNING (newer); a COMPLETED one is untouched'"
+    },
+    {
+      "checkId": 763,
+      "serviceCode": "rpt-b-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-UNF-NEW",
+      "what": "started by 'Unfinished Checks listed oldest first: a restart ends AWAITING (older) then RUNNING (newer); a COMPLETED one is untouched'"
+    },
+    {
+      "checkId": 764,
+      "serviceCode": "int-plain-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-X999",
+      "what": "started by 'An employee unknown to any directory is accepted; no server-rendered report page'"
+    },
+    {
+      "checkId": 765,
+      "serviceCode": "int-m2-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-I011",
+      "what": "started by 'Uploads alone never continue the Check: TRANSCRIPT + ID_CARD uploaded, no confirmation'"
+    },
+    {
+      "checkId": 766,
+      "serviceCode": "int-m2-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-I012",
+      "what": "started by 'Neither an upload nor a confirmation records a decision'"
+    },
+    {
+      "checkId": 767,
+      "serviceCode": "int-m2-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-I095",
+      "what": "started by 'The uploaded-documents read relays Document Access's listing unchanged (300 KB + 60 MB)'"
+    },
+    {
+      "checkId": 768,
+      "serviceCode": "approve-service-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-IDLE",
+      "what": "started by 'APPROVED through the Approval API: recorded as executed; the only host connection is that call'"
+    },
+    {
+      "checkId": 769,
+      "serviceCode": "approve-service-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-EXEC",
+      "what": "started by 'APPROVED through the Approval API: recorded as executed; the only host connection is that call'"
+    },
+    {
+      "checkId": 770,
+      "serviceCode": "approve-service-t1003115316",
+      "requestNumber": "R-643",
+      "what": "started by 'A refusal after an executed approval: REJECTED recorded while the Approval API holds; the APPROVED answers 409 and is logged'"
+    },
+    {
+      "checkId": 771,
+      "serviceCode": "int-mal-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-MAL",
+      "what": "started by 'The decision path answers in the standard form when the approval definition cannot be read'"
+    },
+    {
+      "checkId": 772,
+      "serviceCode": "int-plain-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-I719",
+      "what": "started by 'Host Integration keeps nothing after answering (tables, multipart storage, live heap)'"
+    },
+    {
+      "checkId": 773,
+      "serviceCode": "int-plain-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-I718",
+      "what": "started by 'Host Integration keeps nothing after answering (tables, multipart storage, live heap)'"
+    },
+    {
+      "checkId": 774,
+      "serviceCode": "int-plain-t1003115316",
+      "requestNumber": "E2E-20261003T115316Z-I006",
+      "what": "started by 'An unexpected failure (the database paused) is answered INT-500 without internals'"
+    }
+  ]
+}

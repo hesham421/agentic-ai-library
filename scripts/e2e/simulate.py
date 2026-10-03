@@ -3408,9 +3408,1162 @@ for _tc, (_title, _partial, _reason) in DOC_NOT_EXERCISABLE.items():
     doc_not_exercisable(_tc, _title, _partial, _reason)
 
 
+# ================================================================================== RPT / INT groups
+# The Report Store (RPT) and Host Integration (INT) gap closure. RPT's result port, decision procedure and purge are
+# in-process (ADR-RPT-006); what they do is observable through the Check lifecycle (start / upload / confirm / end),
+# RPT's three reads (API-RPT-001/002/003), INT's decision path and the purge log. The groups run in their own MODES:
+#   * isolated package directories local/e2e-rpt/packages-v2|-v3 and local/e2e-int/packages, service codes carrying
+#     the run tag (the registry keeps every version), storage root local/e2e-rpt/root;
+#   * the comparison model's provider replaced by scripts/e2e/model_stub.py (127.0.0.1:7293) — a SCRIPTED local
+#     test double of the external provider, like local/approval-stub.py for the host Approval API: a Check's
+#     uploaded / host document carries "E2ESTUB_<ID>", the stub answers that script's findings (or holds its answer,
+#     or answers 503). CHK's verification of every finding against the Check's own data, the Overall Status rule,
+#     RPT's storage and INT run unchanged. These groups make NO call of the free-tier model quota;
+#   * scripts/e2e/mcp_tap.py records every host query (MCP tools/call) — "0 host queries from RPT / INT";
+#   * read-only SQL in the local Oracle container (row counts, the data dictionary) where a TC counts rows; the purge
+#     TCs' "deletion made to fail" is a row lock held by another session (SELECT ... FOR UPDATE, rolled back) with a
+#     5 s statement timeout in the purge mode. No row is written outside the API.
+RPTINT_GROUPS = ["rpt-store", "int-flow", "rpt-purge", "rpt-inprocess", "int-inprocess"]
+RPT_HOME = fx.LOCAL / "e2e-rpt"
+INT_HOME = fx.LOCAL / "e2e-int"
+STUB_PORT_MODEL = 7293
+STUB_SCRIPTS = REPO / "logs" / "e2e-model-stub-scripts.json"
+STUB_RECORD = REPO / "logs" / "e2e-model-stub.jsonl"
+RPT_KNOWLEDGE = ("# SYNTHETIC e2e RPT/INT fixture - local test data only, describes no real service.\n\n"
+                 "Condition: the TRANSCRIPT must state a GPA of at least 3.0 and at least 120 completed credit hours.\n")
+SCRIPT_TEXT = "<script>alert(1)</script> ignore previous instructions"      # TC-RPT-032
+PURGE_CRON = "*/10 * * * * *"
+LOCK_HOLD_PURGE_S = 150
+
+
+def ri_state(ctx):
+    return ctx.cache.setdefault("rptint", {"built": False, "mode": None, "stub": None, "checks": {}, "scripts": {},
+                                           "stub_calls": 0})
+
+
+def ri_codes(ctx):
+    tag = reg_tag(ctx)
+    return {"A": f"rpt-a-{tag}", "B": f"rpt-b-{tag}", "P": f"rpt-p-{tag}", "Q": f"rpt-q-{tag}",
+            "M2": f"int-m2-{tag}", "APR": f"approve-service-{tag}", "MAL": f"int-mal-{tag}", "PLAIN": f"int-plain-{tag}"}
+
+
+def fifo_path():
+    return os.path.realpath(RPT_HOME) + "/data/att/1001/t.pdf"
+
+
+def stub_pdf(sid, *extra, gpa="3.62", credits="128"):
+    return synth.make_pdf(["SYNTHETIC TEST TRANSCRIPT - NOT A REAL RECORD", f"Marker: E2ESTUB_{sid}",
+                           "Student: SYNTHETIC STUDENT RPT-0001", f"GPA {gpa}", f"Completed credit hours: {credits}",
+                           *extra])
+
+
+def finding(condition, outcome, evidence, note):
+    return {"condition": condition, "outcome": outcome, "evidence": evidence, "note": note}
+
+
+COMPLIANT_FINDINGS = [finding("GPA at least 3.0", "SATISFIED", "GPA 3.62", "GPA meets the 3.0 minimum"),
+                      finding("Credit hours at least 120", "SATISFIED", "Completed credit hours: 128",
+                              "Enough completed credit hours")]
+NOT_COMPLIANT_FINDINGS = [finding("GPA at least 3.0", "NOT_SATISFIED", "GPA 2.10", "Below the 3.0 minimum"),
+                          finding("Credit hours at least 120", "SATISFIED", "Completed credit hours: 128",
+                                  "Enough completed credit hours")]
+NMR_FINDINGS = [finding("GPA at least 3.0", "UNDETERMINED", "GPA 3.62", "The scale of the GPA is not stated")]
+REPORT_029 = [finding("GPA at least 3.0", "NOT_SATISFIED", "GPA = 2.7", "Below the 3.0 minimum"),
+              finding("TRANSCRIPT present", "SATISFIED", "SYNTHETIC TEST TRANSCRIPT", "The transcript is present"),
+              finding("ID_CARD present", "SATISFIED", "Student: SYNTHETIC STUDENT RPT-0001", "Identity stated"),
+              finding("Remarks are kept as data", "SATISFIED", SCRIPT_TEXT, "Stored text, returned as data")]
+SCRIPTS = {
+    "C": {"findings": COMPLIANT_FINDINGS}, "N": {"findings": NOT_COMPLIANT_FINDINGS},
+    "R": {"findings": NMR_FINDINGS}, "S029": {"findings": REPORT_029},
+    "CH15": {"hold": 15, "findings": COMPLIANT_FINDINGS},                      # TC-RPT-006: RUNNING observed
+    "P001": {"hold": 40, "findings": COMPLIANT_FINDINGS},                      # TC-INT-027: 40 s pipeline
+    "T120": {"hold": 120, "findings": COMPLIANT_FINDINGS},                     # TC-RPT-021: beyond PT60S
+    "H200": {"hold": 200, "findings": COMPLIANT_FINDINGS},                     # TC-RPT-025: RUNNING at a restart
+    "U503": {"status": 503, "error": "provider answered 503"},                 # TC-RPT-031
+}
+
+
+def ri_write_scripts():
+    STUB_SCRIPTS.parent.mkdir(exist_ok=True)
+    STUB_SCRIPTS.write_text(json.dumps(SCRIPTS, indent=1))
+
+
+def ensure_model_stub(ctx):
+    st = ri_state(ctx)
+    ri_write_scripts()
+    if st["stub"] and st["stub"].poll() is None:
+        return
+    import socket
+    with socket.socket() as sock:
+        if sock.connect_ex(("127.0.0.1", STUB_PORT_MODEL)) == 0:
+            return
+    out = open(REPO / "logs" / "e2e-model-stub.out", "a")
+    st["stub"] = subprocess.Popen([sys.executable, str(REPO / "scripts/e2e/model_stub.py")], stdout=out,
+                                  stderr=subprocess.STDOUT, start_new_session=True)
+    time.sleep(1.0)
+
+
+def build_ri_fixtures(ctx):
+    import shutil
+    for home in (RPT_HOME, INT_HOME):
+        if home.exists():
+            for p in home.rglob("*"):
+                if not p.is_symlink() and not p.is_fifo():
+                    os.chmod(p, 0o755 if p.is_dir() else 0o644)
+            shutil.rmtree(home)
+    c = ri_codes(ctx)
+    echo = {"request_echo": ("local-oracle", ECHO_SQL)}
+    # SVC-A: version 2 (R1), then version 3 (R2) - TC-RPT-047's two versions
+    write_pkg(RPT_HOME / "packages-v2", "rpt-a", definition(c["A"], version=2, queries=echo), knowledge=RPT_KNOWLEDGE)
+    v3 = RPT_HOME / "packages-v3"
+    write_pkg(v3, "rpt-a", definition(c["A"], version=3, queries=echo), knowledge=RPT_KNOWLEDGE)
+    write_pkg(v3, "rpt-b", definition(c["B"], queries=echo), knowledge=RPT_KNOWLEDGE)
+    details = "SELECT LEVEL AS N FROM DUAL WHERE :requestId IS NOT NULL CONNECT BY LEVEL <= 501"
+    write_pkg(v3, "rpt-q", definition(c["Q"], queries={**echo, "request_details": ("local-oracle", details)}),
+              knowledge=RPT_KNOWLEDGE)
+    source = ("SELECT DOC_TYPE, FILE_PATH FROM (SELECT 1 AS SEQ, CAST('TRANSCRIPT' AS VARCHAR2(100)) AS DOC_TYPE, "
+              "CAST('p/t.pdf' AS VARCHAR2(400)) AS FILE_PATH FROM DUAL WHERE :requestId IS NOT NULL UNION ALL "
+              f"SELECT 2, CAST('ID_CARD' AS VARCHAR2(100)), CAST({oq(fifo_path())} AS VARCHAR2(400)) FROM DUAL "
+              "WHERE :requestId IS NOT NULL) ORDER BY SEQ")
+    write_pkg(v3, "rpt-p", definition(c["P"], version=3, queries={**echo, "document_source": ("local-oracle", source)},
+                                      documents=path_documents(required=("TRANSCRIPT", "ID_CARD"))),
+              knowledge=RPT_KNOWLEDGE)
+    (RPT_HOME / "root/p").mkdir(parents=True)
+    (RPT_HOME / "root/p/t.pdf").write_bytes(stub_pdf("P001"))
+    (RPT_HOME / "data/att/1001").mkdir(parents=True)          # the FIFO itself is made after the Check (TC-RPT-056)
+    ip = INT_HOME / "packages"
+    write_pkg(ip, "int-m2", definition(c["M2"], queries=echo, required=("TRANSCRIPT", "ID_CARD")),
+              knowledge=RPT_KNOWLEDGE)
+    write_pkg(ip, "approve-service", definition(c["APR"], version=2, queries=echo, approval=[
+        "enabled: true", 'api: "POST /requests/{requestId}/approve"']), knowledge=RPT_KNOWLEDGE)
+    write_pkg(ip, "int-mal", definition(c["MAL"], queries=echo, approval=["enabled: true", 'api: "approve-it"']),
+              knowledge=RPT_KNOWLEDGE)
+    write_pkg(ip, "int-plain", definition(c["PLAIN"], queries=echo), knowledge=RPT_KNOWLEDGE)
+    ri_state(ctx)["built"] = True
+
+
+def ri_override(mode):
+    base = (read_property("spring.ai.openai.base-url") or "https://generativelanguage.googleapis.com/v1beta/openai")
+    path = urllib.parse.urlparse(base).path
+    props = {**fx.connections_with([]),
+             "spring.ai.openai.base-url": f"http://127.0.0.1:{STUB_PORT_MODEL}{path}",
+             "spring.ai.mcp.client.stdio.connections.local-oracle.command": "python3",
+             "spring.ai.mcp.client.stdio.connections.local-oracle.args":
+                 "scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js",
+             "logging.level.io.agenticai.doc.service.UploadedDocumentQueryService": "DEBUG",
+             "logging.level.io.agenticai.chk.adapter.SpringAiComparisonAdapter": "DEBUG"}
+    if mode == "R1":      # SVC-A version 2; purge scheduled, no retention period (TC-RPT-052)
+        props.update({"aias.registry.package-directory": rel(RPT_HOME / "packages-v2"),
+                      "aias.reports.purge-schedule": PURGE_CRON})
+    elif mode in ("R2", "R3"):
+        props.update({"aias.registry.package-directory": rel(RPT_HOME / "packages-v3"),
+                      "aias.documents.storage-root": rel(RPT_HOME / "root"),
+                      "aias.check.timeout": "PT60S", "aias.check.deadline-check-interval": "PT5S",
+                      "aias.check.max-rows": "500"})
+        if mode == "R2":
+            props["aias.check.upload-window"] = "PT2M"          # TC-RPT-063
+        else:             # the purge: retention 1 day, every 10 s, a locked deletion fails after 5 s (a JDBC
+            # socket read timeout: a statement timeout's cancel is not honoured during a lock wait through Docker's port forwarding)
+            props.update({"aias.reports.retention-days": "1", "aias.reports.purge-schedule": PURGE_CRON,
+                          "spring.datasource.hikari.data-source-properties[oracle.jdbc.ReadTimeout]": "5000"})
+    elif mode == "R4":    # INT services; 70 MB request limit (TC-INT-095), 10 s approval timeout (TC-INT-021),
+        # short pool timeouts so a paused database (TC-INT-006) is an error within seconds
+        props.update({"aias.registry.package-directory": rel(INT_HOME / "packages"),
+                      "aias.integration.approval.timeout": "PT10S",
+                      "aias.integration.upload.request-limit": "70MB",
+                      "spring.datasource.hikari.connection-timeout": "2500",
+                      "spring.datasource.hikari.validation-timeout": "1000"})
+    return props
+
+
+RI_MODE_PACKAGES = {"R1": ["rpt-a"], "R2": ["rpt-a", "rpt-b", "rpt-q", "rpt-p"], "R3": ["rpt-a", "rpt-b", "rpt-q", "rpt-p"],
+                    "R4": ["int-m2", "approve-service", "int-mal", "int-plain"]}
+
+
+def ri_mode(ctx, s, mode, force=False):
+    st = ri_state(ctx)
+    if not st["built"]:
+        build_ri_fixtures(ctx)
+    ensure_model_stub(ctx)
+    if st["mode"] != mode or force:
+        use_mode(ctx, s, ri_override(mode), fx.PARKED_BY_DEFAULT, force=True)
+        st["mode"] = mode
+        rows = load_rows(ctx, s)
+        codes = {"rpt-a": "A", "rpt-b": "B", "rpt-q": "Q", "rpt-p": "P", "int-m2": "M2", "approve-service": "APR",
+                 "int-mal": "MAL", "int-plain": "PLAIN"}
+        for folder in RI_MODE_PACKAGES[mode]:
+            x = load_row(rows, "SERVICE_PACKAGE", folder)
+            s.require(x and x["outcome"] in ("REGISTERED", "UNCHANGED", "UPDATED"),
+                      f"fixture {folder} ({ri_codes(ctx)[codes[folder]]}) loaded ({mode})", x)
+    return st
+
+
+def ri_start(ctx, s, service, request_number, expected_status, employee=EMPLOYEE):
+    r = ctx.http.post("/api/v1/checks", {"serviceCode": service, "requestNumber": request_number, "employeeId": employee})
+    s.status_code(r, 202, description=f"start {service} -> 202", hard=True)
+    s.expect(r.json.get("status") == expected_status, f"start answers {expected_status}", r.short())
+    check_id = r.json["checkId"]
+    ctx.track(check_id, service, request_number, f"started by '{s.name}'")
+    s.checks_created.append(check_id)
+    return check_id, r
+
+
+def rpt_read(ctx, check_id):
+    r = ctx.http.get(f"/api/v1/checks/{check_id}")
+    return r.json if r.status == 200 and isinstance(r.json, dict) else {"_status": r.status, "_body": r.raw[:300]}
+
+
+def rpt_wait(ctx, check_id, statuses=("COMPLETED", "FAILED"), timeout=120):
+    deadline = time.time() + timeout
+    while True:
+        rep = rpt_read(ctx, check_id)
+        if rep.get("status") in statuses or time.time() > deadline:
+            return rep
+        time.sleep(1)
+
+
+def stub_flow(ctx, s, service, request_number, sid, pdf=None, confirm=True, wait=True, extra_uploads=()):
+    """start (manual) -> upload a transcript carrying E2ESTUB_<sid> -> confirm -> (wait for the end)."""
+    check_id, _ = ri_start(ctx, s, service, request_number, "AWAITING_DOCUMENTS")
+    r = ctx.http.upload(check_id, "TRANSCRIPT", "t.pdf", pdf or stub_pdf(sid))
+    s.status_code(r, 201, description="upload TRANSCRIPT -> 201", hard=True)
+    for document_type, name, data, ctype in extra_uploads:
+        r = ctx.http.upload(check_id, document_type, name, data, ctype)
+        s.status_code(r, 201, description=f"upload {document_type} -> 201", hard=True)
+    if not confirm:
+        return check_id, None
+    r = ctx.http.post(f"/api/v1/checks/{check_id}/upload-confirmation", {})
+    s.status_code(r, 202, description="confirm -> 202", hard=True)
+    ri_state(ctx)["stub_calls"] += 1
+    if not wait:
+        return check_id, None
+    rep = rpt_wait(ctx, check_id)
+    return check_id, rep
+
+
+def decide(ctx, check_id, decision, by=EMPLOYEE):
+    return ctx.http.post(f"/api/v1/checks/{check_id}/decision", {"employeeDecision": decision, "decidedBy": by})
+
+
+def sql_read(query):
+    """One read-only query in the local Oracle container; rows of '|'-joined text (password via the environment)."""
+    env = dict(os.environ, PW=fx.read_property(PROFILE, "spring.datasource.password") or "",
+               DBU=fx.read_property(PROFILE, "spring.datasource.username") or "")
+    script = ("SET HEADING OFF FEEDBACK OFF PAGESIZE 0 LINESIZE 32767 TRIMSPOOL ON TAB OFF\n"
+              "WHENEVER SQLERROR EXIT FAILURE\n" + query.rstrip(";") + ";\nEXIT\n")
+    out = subprocess.run(["docker", "exec", "-i", "-e", "PW", "-e", "DBU", "erp-oracle", "bash", "-c",
+                          'sqlplus -s -L "$DBU/$PW@localhost:1521/FREEPDB1"'], input=script, capture_output=True,
+                         text=True, env=env, timeout=60)
+    if out.returncode != 0:
+        raise Hard(f"read-only SQL failed: {out.stdout[-300:]}")
+    return [line.strip() for line in out.stdout.splitlines() if line.strip()]
+
+
+def row_counts(check_id):
+    rows = sql_read(f"SELECT (SELECT COUNT(*) FROM RPT_CHECK_RUN WHERE CHECK_RUN_ID = {int(check_id)})||'|'||"
+                    f"(SELECT COUNT(*) FROM RPT_FINDING WHERE CHECK_RUN_ID = {int(check_id)})||'|'||"
+                    f"(SELECT COUNT(*) FROM RPT_CHECK_DOCUMENT WHERE CHECK_RUN_ID = {int(check_id)})||'|'||"
+                    f"(SELECT COUNT(*) FROM RPT_UNREAD_QUERY WHERE CHECK_RUN_ID = {int(check_id)}) FROM DUAL")
+    return [int(x) for x in rows[0].split("|")]
+
+
+def stub_record_since(start):
+    return tap_since(STUB_RECORD, start)
+
+
+def approval_calls(request_number):
+    encoded = urllib.parse.quote(request_number, safe="")
+    return [line for line in stub_lines() if "POST " in line and f"/requests/{encoded}/approve" in line]
+
+
+def ri_check(ctx, key):
+    return ri_state(ctx)["checks"].get(key)
+
+
+def need(ctx, s, key, what):
+    value = ri_check(ctx, key)
+    if value is None:
+        raise Skip("SKIPPED-PRECONDITION", f"{what} was not built in this run (its scenario did not pass or did not run)")
+    return value
+
+
+# ------------------------------------------------------------------------------------- rpt-store (R1)
+@scenario("rpt-store", "No retention period configured: the scheduled purge is skipped and logged, nothing deleted",
+          ["TC-RPT-052"])
+def rpt_purge_skipped(ctx, s):
+    old = sql_read("SELECT MIN(CHECK_RUN_ID) FROM RPT_CHECK_RUN WHERE ENDED_AT < SYSTIMESTAMP - INTERVAL '1' DAY")
+    old_id = int(old[0]) if old and old[0].isdigit() else None
+    ri_mode(ctx, s, "R1")
+    offset = 0
+    deadline = time.time() + 25
+    while time.time() < deadline and "Report purge skipped" not in log_since(offset):
+        time.sleep(1)
+    line = next((x for x in log_since(offset).splitlines() if "Report purge" in x), "")
+    s.expect("Report purge skipped: no valid report retention period is configured." in line,
+             "log: 'Report purge skipped: no valid report retention period is configured.' (purge every 10 s)", line)
+    s.expect("Report purge deleted" not in log_since(offset), "no purge deleted anything", "")
+    if old_id is None:
+        s.expect(False, "an ended Check run older than 1 day exists (precondition)", old)
+    else:
+        rep = rpt_read(ctx, old_id)
+        s.expect(rep.get("checkId") == old_id and rep.get("status") in ("COMPLETED", "FAILED"),
+                 f"Check {old_id} (ended more than a day ago) is still stored", rep)
+
+
+@scenario("rpt-store", "Version 2 of SVC-A: a NEEDS_MANUAL_REVIEW Check decided APPROVED (TC-RPT-047 precondition)")
+def rpt_v2_check(ctx, s):
+    ri_mode(ctx, s, "R1")
+    c = ri_codes(ctx)
+    check_id, rep = stub_flow(ctx, s, c["A"], ctx.request_number("V2NMR"), "R")
+    s.require(rep.get("status") == "COMPLETED" and rep.get("overallStatus") == "NEEDS_MANUAL_REVIEW"
+              and rep.get("versionNumber") == 2, "v2 Check COMPLETED / NEEDS_MANUAL_REVIEW", rep)
+    s.status_code(decide(ctx, check_id, "APPROVED"), 201, description="APPROVED -> 201")
+    ri_state(ctx)["checks"]["v2"] = check_id
+
+
+# ------------------------------------------------------------------------------------- rpt-store (R2)
+@scenario("rpt-store", "No unfinished Check at a start: the unfinished-Check list is empty (start-up recovery: 0)",
+          ["TC-RPT-026"])
+def rpt_unfinished_empty(ctx, s):
+    st = ri_state(ctx)
+    if st["mode"] != "R1":          # not coming from R1's clean state: a first restart ends every unfinished Check
+        ri_mode(ctx, s, "R2")
+    ri_mode(ctx, s, "R2", force=st["mode"] == "R2")
+    log = log_since(0)
+    line = next((x for x in log.splitlines() if "CHK start-up recovery:" in x), "")
+    s.expect("CHK start-up recovery: 0 unfinished Check(s) ended INTERRUPTED" in line,
+             "listUnfinishedChecks() returned an empty list (recovery log: 0 unfinished)", line)
+    # the TC-RPT-063 Check (manual, AWAITING_DOCUMENTS, never confirmed) is started here: upload window PT2M
+    check_id, _ = ri_start(ctx, s, ri_codes(ctx)["B"], ctx.request_number("EXP63"), "AWAITING_DOCUMENTS")
+    st["checks"]["x63"] = (check_id, dt.datetime.now(dt.timezone.utc))
+
+
+@scenario("rpt-store", "Path Check of version 3 created RUNNING and read back; the start answers before the report "
+          "(40 s pipeline)", ["TC-RPT-001", "TC-INT-027"])
+def rpt_created(ctx, s):
+    ri_mode(ctx, s, "R2")
+    c = ri_codes(ctx)
+    t0 = time.time()
+    check_id, r = ri_start(ctx, s, c["P"], "1001", "RUNNING", employee="E-2041")
+    answered = time.time() - t0
+    s.expect(answered < 5, f"TC-INT-027: the start is answered at once ({answered:.2f} s), RUNNING", r.short())
+    rep = rpt_read(ctx, check_id)
+    s.expect(rep.get("status") == "RUNNING" and rep.get("overallStatus") is None,
+             "TC-INT-027: right after the answer the Check is RUNNING with no Overall Status", rep)
+    s.expect(rep.get("serviceCode") == c["P"] and rep.get("versionNumber") == 3 and rep.get("fetchMode") == "path"
+             and rep.get("requestNumber") == "1001" and rep.get("employeeId") == "E-2041" and rep.get("startedAt"),
+             "TC-RPT-001: API-RPT-001 answers serviceCode, versionNumber 3, fetchMode path, requestNumber '1001', "
+             "employeeId 'E-2041', status RUNNING, startedAt", rep)
+    r2 = ctx.http.get("/api/v1/checks?" + urllib.parse.urlencode({"serviceCode": c["P"], "requestNumber": "1001"}))
+    s.expect(r2.status == 200 and r2.json.get("total") == 1 and [x["checkId"] for x in r2.json["checks"]] == [check_id],
+             "exactly 1 Check run stored for the request", r2.short())
+    end = rpt_wait(ctx, check_id, timeout=120)
+    took = time.time() - t0
+    s.expect(end.get("status") == "COMPLETED" and took >= 35, f"the pipeline took ~40 s ({took:.0f} s) and COMPLETED",
+             {k: end.get(k) for k in ("status", "failureReason", "failureDetail")})
+    ri_state(ctx)["checks"]["p"] = check_id
+
+
+@scenario("rpt-store", "Host identifiers kept exactly as received (slash, leading/trailing spaces, case)",
+          ["TC-RPT-002"])
+def rpt_identifiers(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id, _ = ri_start(ctx, s, ri_codes(ctx)["B"], "00-1001/A", "AWAITING_DOCUMENTS", employee=" e.2041 ")
+    rep = rpt_read(ctx, check_id)
+    s.expect(rep.get("requestNumber") == "00-1001/A" and rep.get("employeeId") == " e.2041 ",
+             "requestNumber '00-1001/A' and employeeId ' e.2041 ' byte-identical", rep)
+
+
+@scenario("rpt-store", "Confirmation marks the Check RUNNING with its running time; it then completes COMPLIANT",
+          ["TC-RPT-006"])
+def rpt_mark_running(ctx, s):
+    ri_mode(ctx, s, "R2")
+    c = ri_codes(ctx)
+    check_id, _ = stub_flow(ctx, s, c["A"], ctx.request_number("A1"), "CH15", confirm=False)
+    before = rpt_read(ctx, check_id)
+    s.expect(before.get("status") == "AWAITING_DOCUMENTS" and before.get("runningSince") is None,
+             "AWAITING_DOCUMENTS with no running time", before)
+    confirmed = dt.datetime.now(dt.timezone.utc)
+    r = ctx.http.post(f"/api/v1/checks/{check_id}/upload-confirmation", {})
+    s.status_code(r, 202, description="confirm -> 202", hard=True)
+    rep = rpt_read(ctx, check_id)
+    since = rep.get("runningSince")
+    ok = rep.get("status") == "RUNNING" and since and \
+        abs((dt.datetime.fromisoformat(since) - confirmed).total_seconds()) < 5
+    s.expect(ok, "status RUNNING and runningSince = the confirmation time", rep)
+    end = rpt_wait(ctx, check_id)
+    s.require(end.get("status") == "COMPLETED" and end.get("overallStatus") == "COMPLIANT"
+              and end.get("runningSince") == since, "COMPLETED / COMPLIANT, runningSince kept", end)
+    ri_state(ctx)["checks"]["a1"] = check_id
+
+
+@scenario("rpt-store", "Employee Decision APPROVED by E-3307 recorded; Overall Status and findings unchanged",
+          ["TC-RPT-038"])
+def rpt_decision_recorded(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id = need(ctx, s, "a1", "the COMPLIANT Check a1")
+    before = rpt_read(ctx, check_id)
+    r = decide(ctx, check_id, "APPROVED", "E-3307")
+    s.status_code(r, 201, description="APPROVED / E-3307 -> 201")
+    rep = rpt_read(ctx, check_id)
+    d = rep.get("decision") or {}
+    s.expect(d.get("employeeDecision") == "APPROVED" and d.get("decidedBy") == "E-3307"
+             and d.get("approvalApiExecuted") is False and d.get("decidedAt"),
+             "decision {APPROVED, 'E-3307', approvalApiExecuted false, decidedAt set}", d)
+    s.expect(rep.get("overallStatus") == before.get("overallStatus") == "COMPLIANT"
+             and rep.get("findings") == before.get("findings"), "overallStatus and findings unchanged", rep)
+
+
+@scenario("rpt-store", "Report contents: finding with its evidence and note, stored text returned as data, order kept",
+          ["TC-RPT-029", "TC-RPT-032", "TC-RPT-013"])
+def rpt_report_contents(ctx, s):
+    ri_mode(ctx, s, "R2")
+    c = ri_codes(ctx)
+    pdf = stub_pdf("S029", "Result line: GPA = 2.7", f"Remarks: {SCRIPT_TEXT}", gpa="2.70")
+    check_id, rep = stub_flow(ctx, s, c["A"], ctx.request_number("A6"), "S029", pdf=pdf)
+    s.require(rep.get("status") == "COMPLETED", "COMPLETED", rep)
+    f = rep.get("findings") or []
+    one = [x for x in f if x.get("condition") == "GPA at least 3.0"]
+    s.expect(len(one) == 1 and one[0]["outcome"] == "NOT_SATISFIED" and one[0]["evidence"] == "GPA = 2.7"
+             and one[0]["note"] == "Below the 3.0 minimum",
+             "TC-RPT-029: one finding holds 'GPA at least 3.0', NOT_SATISFIED, 'GPA = 2.7', 'Below the 3.0 minimum'", f)
+    conds = [x["condition"] for x in f]
+    want = ["GPA at least 3.0", "TRANSCRIPT present", "ID_CARD present"]
+    s.expect(conds[:3] == want and [x["position"] for x in f] == list(range(1, len(f) + 1)),
+             "TC-RPT-013: findings at positions 1, 2, 3 in the order handed over", conds)
+    r = ctx.http.get(f"/api/v1/checks/{check_id}")
+    js = next((x for x in (r.json or {}).get("findings", []) if x["condition"] == "Remarks are kept as data"), {})
+    s.expect(js.get("evidence") == SCRIPT_TEXT, "TC-RPT-032: the evidence is the identical character string", js)
+    s.expect(r.headers.get("Content-Type", "").startswith("application/json") and "text/html" not in str(r.headers),
+             "TC-RPT-032: response content type application/json (no HTML)", r.headers.get("Content-Type"))
+    s.expect(json.dumps(SCRIPT_TEXT)[1:-1] in r.raw.decode(), "TC-RPT-032: carried as a JSON string value", "")
+    s.status_code(decide(ctx, check_id, "REJECTED"), 201, description="REJECTED (TC-RPT-047 row) -> 201")
+    ri_state(ctx)["checks"]["a6"] = check_id
+
+
+@scenario("rpt-store", "Every Check its own record: a new Check of request 1001 beside a COMPLETED, APPROVED one",
+          ["TC-RPT-036"])
+def rpt_own_record(ctx, s):
+    ri_mode(ctx, s, "R2")
+    c = ri_codes(ctx)
+    old, rep = stub_flow(ctx, s, c["A"], "1001", "C")
+    s.require(rep.get("overallStatus") == "COMPLIANT" and len(rep.get("findings", [])) == 3, "Check of 1001 COMPLIANT, "
+              "3 findings", rep)
+    s.status_code(decide(ctx, old, "APPROVED"), 201, description="APPROVED -> 201", hard=True)
+    before = rpt_read(ctx, old)
+    new, _ = ri_start(ctx, s, c["A"], "1001", "AWAITING_DOCUMENTS")
+    fresh = rpt_read(ctx, new)
+    s.expect(new != old and fresh.get("findings") == [] and fresh.get("decision") is None,
+             "a new checkId with 0 findings and decision null", fresh)
+    s.expect(rpt_read(ctx, old) == before and len(before["findings"]) == 3
+             and before["decision"]["employeeDecision"] == "APPROVED", "the earlier Check unchanged (3 findings, APPROVED)",
+             before)
+    ri_state(ctx)["checks"]["a2"] = old
+
+
+@scenario("rpt-store", "Decision agreement counted per version (4/1/2 on version 3, 1 on version 2, undecided not counted)",
+          ["TC-RPT-047"])
+def rpt_agreement(ctx, s):
+    ri_mode(ctx, s, "R2")
+    c = ri_codes(ctx)
+    need(ctx, s, "v2", "the version-2 Check")
+    need(ctx, s, "a1", "Check a1")
+    need(ctx, s, "a2", "Check a2")
+    need(ctx, s, "a6", "Check a6")
+    plan = [("A3", "C", "APPROVED"), ("A4", "C", "APPROVED"), ("A5", "C", "REJECTED"), ("A7", "N", "REJECTED"),
+            ("U2", "C", None), ("U3", "N", None)]
+    for label, sid, decision in plan:
+        check_id, rep = stub_flow(ctx, s, c["A"], ctx.request_number(label), sid,
+                                  pdf=stub_pdf(sid, gpa="2.10") if sid == "N" else None)
+        want = "COMPLIANT" if sid == "C" else "NOT_COMPLIANT"
+        s.require(rep.get("overallStatus") == want, f"{label} COMPLETED {want}", rep)
+        if decision:
+            s.status_code(decide(ctx, check_id, decision), 201, description=f"{label} {decision} -> 201", hard=True)
+        ri_state(ctx)["checks"][label.lower()] = check_id
+    r = ctx.http.get("/api/v1/decision-agreement?serviceCode=" + urllib.parse.quote(c["A"]))
+    s.status_code(r, 200)
+    got = sorted((x["versionNumber"], x["overallStatus"], x["employeeDecision"], x["count"]) for x in r.json or [])
+    want = sorted([(3, "COMPLIANT", "APPROVED", 4), (3, "COMPLIANT", "REJECTED", 1), (3, "NOT_COMPLIANT", "REJECTED", 2),
+                   (2, "NEEDS_MANUAL_REVIEW", "APPROVED", 1)])
+    s.expect(got == want, "rows (3,COMPLIANT,APPROVED,4) (3,COMPLIANT,REJECTED,1) (3,NOT_COMPLIANT,REJECTED,2) "
+             "(2,NEEDS_MANUAL_REVIEW,APPROVED,1); the 3 undecided Checks not counted", got)
+
+
+@scenario("rpt-store", "Unread service query request_details ('more than 500 rows') kept; NEEDS_MANUAL_REVIEW",
+          ["TC-RPT-015"])
+def rpt_unread_query(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id, rep = stub_flow(ctx, s, ri_codes(ctx)["Q"], ctx.request_number("Q"), "C")
+    s.expect(rep.get("status") == "COMPLETED" and rep.get("overallStatus") == "NEEDS_MANUAL_REVIEW",
+             "COMPLETED / NEEDS_MANUAL_REVIEW", {k: rep.get(k) for k in ("status", "overallStatus", "failureDetail")})
+    s.expect(rep.get("unreadQueries") == [{"position": 1, "queryName": "request_details", "detail": "more than 500 rows"}]
+             or [(q.get("queryName"), q.get("detail")) for q in rep.get("unreadQueries", [])]
+             == [("request_details", "more than 500 rows")],
+             "1 unread query request_details with detail 'more than 500 rows'", rep.get("unreadQueries"))
+
+
+@scenario("rpt-store", "No document content kept: a READ document entry and the RPT_CHECK_DOCUMENT columns",
+          ["TC-RPT-022"])
+def rpt_no_content(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id = need(ctx, s, "p", "the path Check")
+    rep = rpt_read(ctx, check_id)
+    read = [d for d in rep.get("documents", []) if d.get("readStatus") == "READ"]
+    s.expect(len(read) == 1 and read[0]["position"] == 1 and read[0]["documentType"] == "TRANSCRIPT"
+             and read[0]["unreadableReason"] is None and set(read[0]) == {"position", "documentType", "sourceMode",
+                                                                         "readStatus", "unreadableReason", "detail"},
+             "the entry holds exactly position (1), documentType, sourceMode, readStatus READ, unreadableReason (null), "
+             "detail", read)
+    s.expect("E2ESTUB_P001" not in json.dumps(rep) and "SYNTHETIC STUDENT RPT-0001" not in json.dumps(rep),
+             "no part of the document's text is returned", "")
+    cols = sql_read("SELECT COLUMN_NAME||' '||DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = 'RPT_CHECK_DOCUMENT' "
+                    "ORDER BY COLUMN_ID")
+    names = [x.split()[0] for x in cols]
+    s.expect(names == ["CHECK_DOCUMENT_ID", "POSITION", "DOCUMENT_TYPE", "SOURCE_MODE", "READ_STATUS",
+                       "UNREADABLE_REASON", "DETAIL", "CHECK_RUN_ID", "CREATED_AT", "UPDATED_AT"]
+             and not any("BLOB" in x or "RAW" in x for x in cols),
+             "no RPT_CHECK_DOCUMENT column holds raw text, image data or file bytes (data dictionary)", cols)
+    rows = sql_read(f"SELECT COUNT(*) FROM RPT_CHECK_DOCUMENT WHERE CHECK_RUN_ID = {check_id} AND "
+                    "(DBMS_LOB.INSTR(DETAIL, 'E2ESTUB') > 0 OR DBMS_LOB.INSTR(DETAIL, 'SYNTHETIC') > 0)")
+    s.expect(rows == ["0"], "no stored detail holds the document's text", rows)
+
+
+@scenario("rpt-store", "No file opened: a stored detail naming a path is returned as text (the path is a FIFO)",
+          ["TC-RPT-056"])
+def rpt_no_file(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id = need(ctx, s, "p", "the path Check")
+    path = fifo_path()
+    if os.path.exists(path):
+        os.unlink(path)
+    os.mkfifo(path)                   # an open() for reading would BLOCK the read until a writer appears
+    t0 = time.time()
+    r = ctx.http.get(f"/api/v1/checks/{check_id}", timeout=20)
+    took = time.time() - t0
+    doc = next((d for d in (r.json or {}).get("documents", []) if d.get("documentType") == "ID_CARD"), {})
+    s.expect(r.status == 200 and path in (doc.get("detail") or ""), f"detail returned as the text naming {path}", doc)
+    s.expect(took < 5, f"answered without waiting on the FIFO ({took:.2f} s)", took)
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_NONBLOCK)
+        os.close(fd)
+        s.expect(False, "no process holds the FIFO open for reading", "a reader holds it open")
+    except OSError as e:
+        s.expect(e.errno == 6, "0 opens of the file: no reader holds the FIFO (ENXIO)", repr(e))
+
+
+@scenario("rpt-store", "Listing capped at 100 with the total: 130 Checks of request 1002, 101 of request 1003",
+          ["TC-RPT-034", "TC-RPT-037"])
+def rpt_listing_cap(ctx, s):
+    ri_mode(ctx, s, "R2")
+    b = ri_codes(ctx)["B"]
+    for rn, n in (("1002", 130), ("1003", 101)):
+        ids = []
+        for _ in range(n):
+            r = ctx.http.post("/api/v1/checks", {"serviceCode": b, "requestNumber": rn, "employeeId": EMPLOYEE})
+            if r.status == 202:
+                ids.append(r.json["checkId"])
+        s.require(len(ids) == n, f"{n} Checks started for request {rn}", len(ids))
+        ctx.track(f"{ids[0]}..{ids[-1]}", b, rn, f"{n} Checks started by '{s.name}' (AWAITING, expire after 2 min)")
+        r = ctx.http.get("/api/v1/checks?" + urllib.parse.urlencode({"serviceCode": b, "requestNumber": rn}))
+        s.status_code(r, 200)
+        got = [x["checkId"] for x in r.json.get("checks", [])]
+        started = [x["startedAt"] for x in r.json.get("checks", [])]
+        s.expect(len(got) == 100 and r.json.get("total") == n, f"request {rn}: exactly 100 Checks, total {n}",
+                 {"listed": len(got), "total": r.json.get("total")})
+        s.expect(got == sorted(ids, reverse=True)[:100] and started == sorted(started, reverse=True),
+                 f"request {rn}: the 100 newest, newest first", got[:3])
+
+
+@scenario("rpt-store", "Read filters bound as parameters: requestNumber 1001' OR '1'='1 lists nothing", ["TC-RPT-058"])
+def rpt_bound_filters(ctx, s):
+    ri_mode(ctx, s, "R2")
+    a = ri_codes(ctx)["A"]
+    need(ctx, s, "a2", "the Check of request 1001")
+    r = ctx.http.get("/api/v1/checks?" + urllib.parse.urlencode({"serviceCode": a, "requestNumber": "1001' OR '1'='1"}))
+    s.status_code(r, 200)
+    s.expect(r.json.get("checks") == [] and r.json.get("total") == 0, "checks empty, total 0", r.short())
+    r = ctx.http.get("/api/v1/checks?" + urllib.parse.urlencode({"serviceCode": a, "requestNumber": "1001"}))
+    s.expect(r.json.get("total") == 2, "control: request 1001 itself lists its 2 Checks", r.short())
+
+
+@scenario("rpt-store", "Failed Check read with its reason: the provider answers 503 -> MODEL_UNAVAILABLE",
+          ["TC-RPT-031"])
+def rpt_failed_503(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id, rep = stub_flow(ctx, s, ri_codes(ctx)["B"], ctx.request_number("U503"), "U503")
+    s.expect(rep.get("status") == "FAILED" and rep.get("failureReason") == "MODEL_UNAVAILABLE"
+             and "provider answered 503" in (rep.get("failureDetail") or "") and rep.get("overallStatus") is None,
+             "200; FAILED, MODEL_UNAVAILABLE, failureDetail naming 'provider answered 503', overallStatus null",
+             {k: rep.get(k) for k in ("status", "failureReason", "failureDetail", "overallStatus")})
+
+
+@scenario("rpt-store", "A RUNNING Check past its timeout is stored FAILED / TIMED_OUT with its detail and end time",
+          ["TC-RPT-021"])
+def rpt_timed_out(ctx, s):
+    ri_mode(ctx, s, "R2")
+    t0 = dt.datetime.now(dt.timezone.utc)
+    check_id, _ = stub_flow(ctx, s, ri_codes(ctx)["B"], ctx.request_number("T120"), "T120", wait=False)
+    s.expect(rpt_read(ctx, check_id).get("status") == "RUNNING", "RUNNING (the provider holds its answer 120 s)", "")
+    rep = rpt_wait(ctx, check_id, timeout=110)
+    ended = rep.get("endedAt")
+    s.expect(rep.get("status") == "FAILED" and rep.get("failureReason") == "TIMED_OUT" and rep.get("failureDetail")
+             and ended and rep.get("overallStatus") is None and rep.get("findings") == [],
+             "FAILED, failureReason TIMED_OUT, a failureDetail, endedAt, overallStatus null, 0 findings",
+             {k: rep.get(k) for k in ("status", "failureReason", "failureDetail", "endedAt", "overallStatus")})
+    if ended:
+        secs = (dt.datetime.fromisoformat(ended) - t0).total_seconds()
+        s.expect(55 <= secs <= 100, f"ended after the 60 s timeout ({secs:.0f} s)", secs)
+
+
+@scenario("rpt-store", "A Check awaiting documents ends FAILED / UPLOAD_WINDOW_EXPIRED, never RUNNING", ["TC-RPT-063"])
+def rpt_awaiting_failed(ctx, s):
+    ri_mode(ctx, s, "R2")
+    check_id, started = need(ctx, s, "x63", "the awaiting Check")
+    left = 150 - (dt.datetime.now(dt.timezone.utc) - started).total_seconds()
+    rep = rpt_wait(ctx, check_id, timeout=max(left, 10))
+    s.expect(rep.get("status") == "FAILED" and rep.get("failureReason") == "UPLOAD_WINDOW_EXPIRED"
+             and rep.get("failureDetail") and rep.get("endedAt") and rep.get("overallStatus") is None
+             and rep.get("runningSince") is None and rep.get("findings") == [],
+             "FAILED, UPLOAD_WINDOW_EXPIRED, its detail and endedAt, overallStatus null, runningSince null, 0 findings",
+             {k: rep.get(k) for k in ("status", "failureReason", "failureDetail", "endedAt", "runningSince")})
+
+
+@scenario("rpt-store", "Unfinished Checks listed oldest first: a restart ends AWAITING (older) then RUNNING (newer); "
+          "a COMPLETED one is untouched", ["TC-RPT-025"])
+def rpt_unfinished_order(ctx, s):
+    ri_mode(ctx, s, "R2")
+    b = ri_codes(ctx)["B"]
+    done = ri_check(ctx, "a1") or stub_flow(ctx, s, b, ctx.request_number("UNF-DONE"), "C")[0]
+    older, _ = ri_start(ctx, s, b, ctx.request_number("UNF-OLD"), "AWAITING_DOCUMENTS")
+    time.sleep(1.5)
+    newer, _ = stub_flow(ctx, s, b, ctx.request_number("UNF-NEW"), "H200", wait=False)
+    s.require(rpt_read(ctx, newer).get("status") == "RUNNING", "the newer Check is RUNNING", "")
+    before = rpt_read(ctx, done)
+    # an abrupt stop (SIGKILL): a graceful stop interrupts the RUNNING pipeline, which CHK then ends TIMED_OUT itself
+    # (seen in the dev run) - the RUNNING Check must still be unfinished when the next start lists them
+    pid = fx.pid_alive(fx.APP_PID)
+    if pid:
+        os.kill(pid, 9)
+        try:
+            os.waitpid(pid, 0)          # reap it when this runner started it (else a zombie still answers kill 0)
+        except ChildProcessError:
+            pass
+        for _ in range(40):
+            if not fx.pid_alive(fx.APP_PID):
+                break
+            time.sleep(0.25)
+    s.require(not fx.pid_alive(fx.APP_PID), "the app is stopped abruptly while the newer Check is RUNNING", pid)
+    ri_mode(ctx, s, "R4")                                  # the restart: start-up recovery lists the unfinished Checks
+    o, n = rpt_read(ctx, older), rpt_read(ctx, newer)
+    s.expect(o.get("failureReason") == "INTERRUPTED" and n.get("failureReason") == "INTERRUPTED",
+             "both unfinished Checks were listed (ended INTERRUPTED)", (o.get("failureReason"), n.get("failureReason")))
+    s.expect(o.get("startedAt") < n.get("startedAt") and o.get("endedAt") and n.get("endedAt")
+             and dt.datetime.fromisoformat(o["endedAt"]) < dt.datetime.fromisoformat(n["endedAt"]),
+             "handled in list order: the older (AWAITING) before the newer (RUNNING) - oldest first", (o, n))
+    s.expect(rpt_read(ctx, done) == before, "the COMPLETED Check is absent from the list (unchanged)", "")
+
+
+# ------------------------------------------------------------------------------------- int-flow (R4)
+@scenario("int-flow", "An employee unknown to any directory is accepted; no server-rendered report page",
+          ["TC-INT-029", "TC-INT-022"])
+def int_unknown_employee(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, r = ri_start(ctx, s, ri_codes(ctx)["PLAIN"], ctx.request_number("X999"), "AWAITING_DOCUMENTS",
+                           employee="X-999")
+    s.expect(r.status == 202, "TC-INT-029: 202", r.short())
+    s.expect(rpt_read(ctx, check_id).get("employeeId") == "X-999", "TC-INT-029: the Check's employee is 'X-999'", "")
+    r = ctx.http.get(f"/api/v1/checks/{check_id}/view")
+    s.expect(r.status == 404 and b"<html" not in r.raw.lower() and "text/html" not in r.headers.get("Content-Type", ""),
+             "TC-INT-022: GET /checks/{id}/view -> 404, no HTML report", r.short())
+
+
+@scenario("int-flow", "Uploads alone never continue the Check: TRANSCRIPT + ID_CARD uploaded, no confirmation",
+          ["TC-INT-011"])
+def int_uploads_alone(ctx, s):
+    ri_mode(ctx, s, "R4")
+    pdf = stub_pdf("C")
+    check_id, _ = stub_flow(ctx, s, ri_codes(ctx)["M2"], ctx.request_number("I011"), "C", pdf=pdf, confirm=False,
+                            extra_uploads=[("ID_CARD", "id.pdf", synth.make_pdf(["SYNTHETIC ID CARD"]), "application/pdf")])
+    time.sleep(3)
+    s.expect(rpt_read(ctx, check_id).get("status") == "AWAITING_DOCUMENTS", "GET /checks/{id} -> AWAITING_DOCUMENTS", "")
+
+
+@scenario("int-flow", "Neither an upload nor a confirmation records a decision", ["TC-INT-012"])
+def int_no_decision(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, _ = stub_flow(ctx, s, ri_codes(ctx)["M2"], ctx.request_number("I012"), "C", wait=False)
+    rep = rpt_read(ctx, check_id)
+    s.expect("decision" in rep and rep["decision"] is None, "right after the confirmation: decision null", rep)
+    rep = rpt_wait(ctx, check_id)
+    s.expect(rep.get("decision") is None, f"after the end ({rep.get('status')}): decision null", rep.get("decision"))
+
+
+@scenario("int-flow", "The uploaded-documents read relays Document Access's listing unchanged (300 KB + 60 MB)",
+          ["TC-INT-095"])
+def int_list_relay(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, _ = ri_start(ctx, s, ri_codes(ctx)["M2"], ctx.request_number("I095"), "AWAITING_DOCUMENTS")
+    t = synth.make_pdf_sized(["SYNTHETIC TRANSCRIPT 300 KB"], 307200)
+    png = synth.make_png(["SYNTHETIC ID"], scale=1, margin=2)
+    big = png + b"\0" * (62914560 - len(png))
+    s.status_code(ctx.http.upload(check_id, "TRANSCRIPT", "t.pdf", t), 201, description="t.pdf (300 KB) -> 201", hard=True)
+    r = ctx.http.upload(check_id, "ID_CARD", "id.png", big, "image/png")
+    s.status_code(r, 201, description="id.png (60 MB) -> 201 with the oversized notice", hard=True)
+    offset = log_offset()
+    r = ctx.http.get(f"/api/v1/checks/{check_id}/documents")
+    s.status_code(r, 200)
+    time.sleep(0.5)
+    calls = [x for x in log_since(offset).splitlines() if "DOC list uploads checkId=" in x]
+    s.expect(len(calls) == 1 and f"checkId={check_id}" in calls[0],
+             f"Document Access's listUploadedDocuments received exactly 1 call, with checkId {check_id} (debug log)", calls)
+    items = r.json or []
+    s.expect([(x.get("documentType"), x.get("fileName"), x.get("fileSize"), x.get("oversized")) for x in items]
+             == [("TRANSCRIPT", "t.pdf", 307200, False), ("ID_CARD", "id.png", 62914560, True)],
+             "2 entries in upload order: TRANSCRIPT t.pdf 307200 false, ID_CARD id.png 62914560 true", items)
+    doc = ctx.http.get(f"/api/v1/uploaded-documents?checkId={check_id}").json or []
+    s.expect(all(set(x) == {"uploadedDocumentId", "documentType", "fileName", "fileSize", "oversized", "uploadedAt"}
+                 for x in items)
+             and [x.get("uploadedDocumentId") for x in items] == [x.get("uploadedDocumentId") for x in doc]
+             and [x.get("uploadedAt") for x in items] == [x.get("createdAt") for x in doc],
+             "each with uploadedDocumentId and uploadedAt as Document Access returned them, no content field",
+             {"int": items, "doc": doc})
+
+
+def apr_compliant(ctx, s, label, request_number=None):
+    check_id, rep = stub_flow(ctx, s, ri_codes(ctx)["APR"], request_number or ctx.request_number(label), "C")
+    s.require(rep.get("status") == "COMPLETED" and rep.get("overallStatus") == "COMPLIANT" and rep.get("versionNumber") == 2,
+              f"{label}: approve-service version 2 Check COMPLETED / COMPLIANT", rep)
+    return check_id, rep
+
+
+@scenario("int-flow", "APPROVED through the Approval API: recorded as executed; the only host connection is that call",
+          ["TC-RPT-043", "TC-INT-024"])
+def int_approval_executed(ctx, s):
+    ri_mode(ctx, s, "R4")
+    # TC-INT-015 / TC-RPT-044's Check is completed first and left undecided until the end of the group
+    idle, _ = apr_compliant(ctx, s, "IDLE")
+    ri_state(ctx)["checks"]["idle"] = (idle, rpt_read(ctx, idle)["requestNumber"], time.time())
+    check_id, rep = apr_compliant(ctx, s, "EXEC")
+    s.require(stub_mode("ok") == "ok", "approval stub ok")
+    mcp0 = tap_count(MCP_TAP)
+    r = decide(ctx, check_id, "APPROVED", "E-3307")
+    s.status_code(r, 201, description="APPROVED -> 201")
+    time.sleep(0.5)
+    calls = approval_calls(rep["requestNumber"])
+    s.expect(len(calls) == 1, "TC-INT-024: exactly one HTTP call to the Approval API (stub)", calls)
+    s.expect(tap_count(MCP_TAP) == mcp0, "TC-INT-024: no host query (MCP tap) during the decision", tap_count(MCP_TAP) - mcp0)
+    src = REPO / "src/main/java/io/agenticai/integration"
+    banned = ("java.sql", "javax.sql", "jakarta.persistence", "org.springframework.jdbc", "org.springframework.data",
+              "io.agenticai.platform.mcp")
+    hits = [f"{p.name}: {line.strip()}" for p in src.rglob("*.java") for line in p.read_text().splitlines()
+            if line.startswith("import ") and any(b in line for b in banned)]
+    http = sorted({p.name for p in src.rglob("*.java") if any(k in p.read_text() for k in
+                                                               ("RestClient", "HttpClient", "WebClient", "URLConnection"))})
+    s.expect(not hits and http == ["HttpHostApprovalAdapter.java"],
+             "TC-INT-024: no INT class opens a database connection; the one HTTP client is the Approval API adapter "
+             "(source scan)", {"imports": hits, "httpClients": http})
+    d = rpt_read(ctx, check_id).get("decision") or {}
+    s.expect(d.get("employeeDecision") == "APPROVED" and d.get("approvalApiExecuted") is True,
+             "TC-RPT-043: decision APPROVED with approvalApiExecuted true", d)
+
+
+@scenario("int-flow", "A refusal after an executed approval: REJECTED recorded while the Approval API holds; the "
+          "APPROVED answers 409 and is logged", ["TC-INT-021"])
+def int_refusal_after_approval(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, _ = apr_compliant(ctx, s, "R643", request_number="R-643")
+    result = {}
+    offset = log_offset()
+    calls0 = len(approval_calls("R-643"))
+    try:
+        s.require(stub_mode("delay", 4) == "delay", "approval stub: 200 after a 4 s delay")
+        worker = threading.Thread(target=lambda: result.setdefault("r", decide(ctx, check_id, "APPROVED", "E-3307")))
+        worker.start()
+        time.sleep(1.0)
+        r2 = decide(ctx, check_id, "REJECTED", "E-4410")
+        s.status_code(r2, 201, description="request 2 (REJECTED, while the stub holds) -> 201, recorded")
+        worker.join(30)
+    finally:
+        stub_mode("ok")
+    r1 = result.get("r")
+    s.require(r1 is not None, "request 1 answered", "")
+    s.status_code(r1, 409, "RPT-409-DECISION-ALREADY-RECORDED", "request 1 -> 409 RPT-409-DECISION-ALREADY-RECORDED")
+    s.expect(r1.json and r1.json.get("detail") == f"Check {check_id} already has an Employee Decision.",
+             f"detail en: 'Check {check_id} already has an Employee Decision.'", r1.short())
+    time.sleep(0.5)
+    log = log_since(offset)
+    s.expect(len(approval_calls("R-643")) == calls0 + 1 and f"INT approval executed checkId={check_id}" in log,
+             "the approval was executed (1 stub call, log)", approval_calls("R-643")[calls0:])
+    s.expect(f"Approval executed but decision not recorded: Check {check_id}, request R-643" in log,
+             "the service log names Check, request 'R-643' and the executed approval", [x for x in log.splitlines()
+                                                                                       if "Approval executed" in x])
+    d = rpt_read(ctx, check_id).get("decision") or {}
+    s.expect(d.get("employeeDecision") == "REJECTED" and d.get("approvalApiExecuted") is False,
+             "the Report Store keeps the REJECTED decision", d)
+
+
+def partial_int_044(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, rep = stub_flow(ctx, s, ri_codes(ctx)["MAL"], ctx.request_number("MAL"), "C")
+    s.require(rep.get("overallStatus") == "COMPLIANT", "a COMPLETED Check of a version whose approval definition is "
+              "unusable ('approve-it')", rep)
+    before = len(stub_lines())
+    offset = log_offset()
+    r = decide(ctx, check_id, "APPROVED")
+    s.status_code(r, 500, "INT-500", "partial: APPROVED -> 500 INT-500 (standard form)")
+    s.expect(r.headers.get("Content-Type", "").startswith("application/problem+json")
+             and (r.json or {}).get("detail") == "The request could not be completed because of an unexpected error.",
+             "partial: application/problem+json, the INT-500 detail", r.short())
+    time.sleep(0.5)
+    s.expect(len(stub_lines()) == before, "partial: the host receives no call", stub_lines()[before:])
+    s.expect(f"checkId={check_id}" in log_since(offset), "partial: the service log names the Check identifier", "")
+    s.expect(rpt_read(ctx, check_id).get("decision") is None, "partial: the Check holds no decision", "")
+
+
+def ri_not_exercisable(group, tc, title, reason, partial=None):
+    @scenario(group, title, [tc])
+    def case(ctx, s):
+        if partial:
+            partial(ctx, s)
+        raise Skip("NOT-EXERCISABLE", reason)
+    return case
+
+
+ri_not_exercisable("int-flow", "TC-INT-044", "The decision path answers in the standard form when the approval "
+                   "definition cannot be read", "REG never deletes a stored version and every Check is pinned to one, "
+                   "so the approval definition read (CON-REG-012) never answers not-found. Partial evidence (an "
+                   "unusable stored definition 'approve-it' -> the same INT-500 path) asserted green in this scenario",
+                   partial_int_044)
+
+
+@scenario("int-flow", "Host Integration keeps nothing after answering (tables, multipart storage, live heap)",
+          ["TC-INT-023"])
+def int_keeps_nothing(ctx, s):
+    ri_mode(ctx, s, "R4")
+    c = ri_codes(ctx)
+    c719, _ = stub_flow(ctx, s, c["PLAIN"], ctx.request_number("I719"), "C")
+    c718, _ = ri_start(ctx, s, c["PLAIN"], ctx.request_number("I718"), "AWAITING_DOCUMENTS")
+    marker = "INT023" + uuid.uuid4().hex.upper()
+    s.status_code(ctx.http.upload(c718, "TRANSCRIPT", f"{marker}.pdf", synth.make_pdf(["SYNTHETIC", marker])), 201,
+                  description="1. upload to Check 718 -> 201", hard=True)
+    s.status_code(decide(ctx, c719, "REJECTED", "E-3307"), 201, description="2. decision on Check 719 -> 201", hard=True)
+    s.expect(sql_read("SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME LIKE 'INT\\_%' ESCAPE '\\'") == ["0"],
+             "Host Integration has no table", "")
+    pid = (fx.APP_PID.read_text().strip() if fx.APP_PID.exists() else "")
+    jcmd = str(Path(os.environ.get("JAVA_HOME", "")) / "bin" / "jcmd") if os.environ.get("JAVA_HOME") else "jcmd"
+    props = subprocess.run([jcmd, pid, "VM.system_properties"], capture_output=True, text=True, timeout=60).stdout
+    tmp = next((x.split("=", 1)[1].replace("\\:", ":") for x in props.splitlines() if x.startswith("java.io.tmpdir=")), "")
+    leftovers = []
+    for d in Path(tmp).glob("tomcat*") if tmp else []:
+        for p in d.rglob("*"):
+            try:
+                if p.is_file() and marker.encode() in p.read_bytes():
+                    leftovers.append(str(p))
+            except OSError:
+                pass
+    s.expect(tmp and not leftovers, "no copy of the file in the multipart temporary storage", leftovers)
+    import tempfile                                       # jcmd splits its arguments on spaces: no space in the path
+    dump = Path(tempfile.mkdtemp(prefix="e2e-int023-")) / "heap.hprof"
+    try:
+        out = subprocess.run([jcmd, pid, "GC.heap_dump", str(dump)], capture_output=True, text=True, timeout=300)
+        s.require(dump.exists(), "live-object heap dump of the app (jcmd GC.heap_dump)", out.stdout[-200:])
+        data = dump.read_bytes()
+        found = marker.encode() in data or marker.encode("utf-16-le") in data
+        del data
+        chains = []
+        if found:                     # attribute every copy: which objects hold the arrays carrying the marker
+            out = subprocess.run([sys.executable, str(REPO / "scripts/e2e/hprof_holders.py"), str(dump), marker, "6"],
+                                 capture_output=True, text=True, timeout=900)
+            chains = [x for x in out.stdout.splitlines() if x.strip()]
+            s.require(chains, "copies found in the live heap are attributed to their holders", out.stdout[-300:] +
+                      out.stderr[-300:])
+        int_held = [c for c in chains if "io.agenticai.integration" in c]
+        s.expect(not int_held, "no live Host Integration object holds a copy of the file or its name "
+                 f"({len(chains)} holder chain(s) of the live heap attributed, none through io.agenticai.integration)",
+                 int_held or chains)
+        ri_state(ctx)["checks"]["int023_chains"] = chains
+        tops = sorted({c.split(" <- ")[1] if " <- " in c else c for c in chains})
+        s.expect(True, f"holders of the copies (first level): {', '.join(tops)[:500]}")
+    finally:
+        if dump.exists():
+            dump.unlink()
+    listed = ctx.http.get(f"/api/v1/uploaded-documents?checkId={c718}").json or []
+    s.expect([x.get("fileName") for x in listed] == [f"{marker}.pdf"], "the file is listed by Document Access", listed)
+    d = rpt_read(ctx, c719).get("decision") or {}
+    s.expect(d.get("employeeDecision") == "REJECTED", "the decision is held by the Report Store", d)
+
+
+@scenario("int-flow", "An unexpected failure (the database paused) is answered INT-500 without internals",
+          ["TC-INT-006"])
+def int_unexpected(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, _ = stub_flow(ctx, s, ri_codes(ctx)["PLAIN"], ctx.request_number("I006"), "C")
+    paused = False
+    try:
+        subprocess.run(["docker", "pause", "erp-oracle"], check=True, capture_output=True, timeout=30)
+        paused = True
+        time.sleep(1.5)
+        r = decide(ctx, check_id, "REJECTED", "E-3307")
+    finally:
+        if paused:
+            subprocess.run(["docker", "unpause", "erp-oracle"], capture_output=True, timeout=30)
+    s.status_code(r, 500, "INT-500", "HTTP 500, code INT-500 while the Report Store's database is unreachable")
+    body = r.raw.decode(errors="replace")
+    s.expect((r.json or {}).get("detail") == "The request could not be completed because of an unexpected error."
+             and "Exception" not in body and "\tat " not in body and ".java" not in body,
+             "detail en: 'The request could not be completed because of an unexpected error.'; no stack trace", body[:300])
+    time.sleep(3)
+    s.expect(rpt_read(ctx, check_id).get("decision") is None, "after the outage: no decision was recorded", "")
+
+
+@scenario("int-flow", "A COMPLETED compliant Check of an approval-enabled version, left undecided: no Approval API call; "
+          "the Report Store never approves", ["TC-INT-015", "TC-RPT-044"])
+def int_no_approval_without_decision(ctx, s):
+    ri_mode(ctx, s, "R4")
+    check_id, rn, since = need(ctx, s, "idle", "the undecided approve-service Check")
+    rep = rpt_read(ctx, check_id)
+    s.expect(rep.get("status") == "COMPLETED" and rep.get("overallStatus") == "COMPLIANT" and rep.get("decision") is None,
+             f"decision null after {time.time() - since:.0f} s without a decision handed over", rep.get("decision"))
+    s.expect(approval_calls(rn) == [], "0 Approval API calls for its request (stub)", approval_calls(rn))
+    src = REPO / "src/main/java/io/agenticai/rpt"
+    http = [p.name for p in src.rglob("*.java") if any(k in p.read_text() for k in
+                                                        ("RestClient", "HttpClient", "WebClient", "URLConnection"))]
+    s.expect(not http, "TC-RPT-044: no RPT class makes an outbound HTTP call (source scan)", http)
+
+
+# ------------------------------------------------------------------------------------- rpt-purge (R3)
+def purge_run(ctx, s):
+    """Selects expired Check runs (ended more than 1 day ago), locks a Finding of A and the run row of B in another
+    session, restarts in the purge mode and captures the first purge run's log lines and the reads after it."""
+    def build():
+        for _ in range(40):           # wait (up to 20 min) until 3 ended runs with findings are older than 1 day
+            n = sql_read("SELECT SUM(CASE WHEN EXISTS (SELECT 1 FROM RPT_FINDING f WHERE f.CHECK_RUN_ID = r.CHECK_RUN_ID) "
+                         "THEN 1 ELSE 0 END)||'|'||COUNT(*) FROM RPT_CHECK_RUN r WHERE r.CHECK_STATUS IN ('COMPLETED','FAILED')"
+                         " AND r.ENDED_AT < SYSTIMESTAMP - INTERVAL '1' DAY - INTERVAL '1' MINUTE")
+            with_findings, expired_any = (int(x or 0) for x in n[0].split("|"))
+            if with_findings >= 3 or (expired_any >= 2 and os.environ.get("E2E_PURGE_ANY_RUNS")):
+                break
+            time.sleep(30)
+        rows = sql_read("SELECT r.CHECK_RUN_ID||'|'||TO_CHAR(SYS_EXTRACT_UTC(r.ENDED_AT),'YYYY-MM-DD\"T\"HH24:MI:SS.FF6')"
+                        "||'|'||(SELECT COUNT(*) FROM RPT_FINDING f WHERE f.CHECK_RUN_ID = r.CHECK_RUN_ID)||'|'||"
+                        "(SELECT COUNT(*) FROM RPT_CHECK_DOCUMENT d WHERE d.CHECK_RUN_ID = r.CHECK_RUN_ID)||'|'||"
+                        "NVL(r.EMPLOYEE_DECISION,'-') FROM RPT_CHECK_RUN r WHERE r.CHECK_STATUS IN ('COMPLETED','FAILED')"
+                        " AND r.ENDED_AT < SYSTIMESTAMP - INTERVAL '1' DAY + INTERVAL '10' MINUTE")
+        runs = {}
+        for x in rows:
+            i, ended, nf, nd, dec = x.split("|")
+            runs[int(i)] = {"ended": dt.datetime.fromisoformat(ended + "+00:00"), "nf": int(nf), "nd": int(nd), "dec": dec}
+        now = dt.datetime.now(dt.timezone.utc)
+        # runs with records first (a rerun late in the day may find only runs without findings: then A's lock is a
+        # lock of its run row and TC-RPT-060 / -051 are not judged on records)
+        with_records = sorted((i for i in runs if runs[i]["ended"] < now - dt.timedelta(days=1)),
+                              key=lambda i: (-runs[i]["nf"], -runs[i]["nd"], i))
+        s.require(len(with_records) >= 2, "at least 2 expired Check runs exist", len(with_records))
+        a = with_records[0]
+        d = next((i for i in with_records[1:] if runs[i]["dec"] == "APPROVED"), with_records[1])
+        b = next((i for i in with_records[1:] if i != d), d)
+        recent = ri_check(ctx, "a1") or recent_completed(ctx, s, decided=None)
+        reads = {i: rpt_read(ctx, i) for i in (a, b, d, recent)}
+        env = dict(os.environ, PW=fx.read_property(PROFILE, "spring.datasource.password") or "",
+                   DBU=fx.read_property(PROFILE, "spring.datasource.username") or "")
+        lock = subprocess.Popen(["docker", "exec", "-i", "-e", "PW", "-e", "DBU", "erp-oracle", "bash", "-c",
+                                 'sqlplus -s -L "$DBU/$PW@localhost:1521/FREEPDB1"'], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, text=True)
+        lock.stdin.write("WHENEVER SQLERROR EXIT FAILURE\nSET FEEDBACK OFF HEADING OFF\n"
+                         + (f"SELECT FINDING_ID FROM RPT_FINDING WHERE FINDING_ID = (SELECT MIN(FINDING_ID) FROM "
+                            f"RPT_FINDING WHERE CHECK_RUN_ID = {a}) FOR UPDATE;\n" if runs[a]["nf"] else
+                            f"SELECT CHECK_RUN_ID FROM RPT_CHECK_RUN WHERE CHECK_RUN_ID = {a} FOR UPDATE;\n") +
+                         f"SELECT CHECK_RUN_ID FROM RPT_CHECK_RUN WHERE CHECK_RUN_ID = {b} FOR UPDATE;\nPROMPT LOCKED\n"
+                         f"EXEC DBMS_SESSION.SLEEP({LOCK_HOLD_PURGE_S});\nROLLBACK;\nPROMPT RELEASED\nEXIT\n")
+        lock.stdin.close()
+        line = ""
+        for _ in range(8):
+            line = lock.stdout.readline()
+            if not line or "LOCKED" in line:
+                break
+        s.require("LOCKED" in line, f"another session locks a Finding of Check {a} and the run row of Check {b}", line)
+        locked_at = time.time()
+        ri_mode(ctx, s, "R3", force=True)
+        mcp0 = tap_count(MCP_TAP)
+        deadline = time.time() + 60
+        while time.time() < deadline and "Report purge deleted" not in log_since(0):
+            time.sleep(1)
+        log = log_since(0)
+        lines = [x for x in log.splitlines() if "Report purge" in x]
+        first_deleted = next((x for x in lines if "Report purge deleted" in x), "")
+        cut = first_deleted.split("ended before ", 1)[1].rstrip(".") if "ended before " in first_deleted else None
+        after = {i: rpt_read(ctx, i) for i in runs}
+        after.update({recent: rpt_read(ctx, recent)})
+        return {"runs": runs, "a": a, "b": b, "d": d, "recent": recent, "reads": reads, "lines": lines, "log": log,
+                "cut": dt.datetime.fromisoformat(cut) if cut else None, "first": first_deleted, "after": after,
+                "lock": lock, "locked_at": locked_at, "mcp0": mcp0, "counts_d": row_counts(d)}
+    return shared(ctx, s, "purge", build)
+
+
+def recent_completed(ctx, s, decided):
+    """A COMPLETED Check run ended in the last 6 hours (read-only SQL) — when the rpt-store group did not run."""
+    cond = {None: "", False: " AND EMPLOYEE_DECISION IS NULL"}[decided]
+    rows = sql_read("SELECT MAX(CHECK_RUN_ID) FROM RPT_CHECK_RUN WHERE CHECK_STATUS = 'COMPLETED' AND ENDED_AT > "
+                    f"SYSTIMESTAMP - INTERVAL '6' HOUR{cond}")
+    if not rows or not rows[0].isdigit():
+        raise Skip("SKIPPED-PRECONDITION", "no recent COMPLETED Check run exists")
+    return int(rows[0])
+
+
+@scenario("rpt-purge", "Purge with retention 1 day: an expired Check run is deleted with all its records (404)",
+          ["TC-RPT-051"])
+def rpt_purged(ctx, s):
+    p = purge_run(ctx, s)
+    d, before = p["d"], p["reads"][p["d"]]
+    s.expect(before.get("checkId") == d and before.get("findings") and before.get("documents") is not None,
+             f"before: Check {d} stored with {len(before.get('findings', []))} findings, "
+             f"{len(before.get('documents', []))} documents, decision {(before.get('decision') or {}).get('employeeDecision')}",
+             before.get("status"))
+    s.expect(p["counts_d"] == [0, 0, 0, 0], "0 rows in RPT_CHECK_RUN, RPT_FINDING, RPT_CHECK_DOCUMENT, "
+             "RPT_UNREAD_QUERY (hard delete, cascade)", p["counts_d"])
+    r = ctx.http.get(f"/api/v1/checks/{d}")
+    s.status_code(r, 404, "RPT-404-CHECK-NOT-FOUND", f"GET /api/v1/checks/{d} -> 404 RPT-404-CHECK-NOT-FOUND")
+
+
+@scenario("rpt-purge", "A Check run inside the retention period is kept by the purge", ["TC-RPT-050"])
+def rpt_kept_inside(ctx, s):
+    p = purge_run(ctx, s)
+    s.expect(p["after"][p["recent"]] == p["reads"][p["recent"]],
+             f"Check {p['recent']} (ended minutes ago, retention 1 day) still stored with all its records and decision",
+             p["after"][p["recent"]].get("status"))
+
+
+@scenario("rpt-purge", "Purge outcome logged: 'Report purge deleted N Check runs ended before <cut-off>'",
+          ["TC-RPT-054"])
+def rpt_purge_logged(ctx, s):
+    p = purge_run(ctx, s)
+    s.require(p["cut"] is not None, "the closing line 'Report purge deleted {n} Check runs ended before {cutOff}.' "
+              "is logged", p["lines"][:5])
+    n = int(p["first"].split("deleted ", 1)[1].split(" ", 1)[0])
+    expired = [i for i, r in p["runs"].items() if r["ended"] < p["cut"]]
+    gone = [i for i in expired if p["after"][i].get("_status") == 404]
+    s.expect(n == len(gone) == len(expired) - 2 and n > 0,
+             f"n = the Check runs ended before the cut-off and deleted ({n}; {len(expired)} expired, 2 kept)",
+             {"n": n, "expired": len(expired), "gone": len(gone)})
+    fresh = [i for i, r in p["runs"].items() if r["ended"] >= p["cut"] + dt.timedelta(minutes=5)]
+    s.expect(all(p["after"][i].get("checkId") == i for i in fresh), "runs ended after the cut-off are untouched", fresh)
+    age = dt.datetime.now(dt.timezone.utc) - p["cut"]
+    s.expect(dt.timedelta(days=1) <= age <= dt.timedelta(days=1, minutes=3), f"cut-off = purge time - 1 day ({p['cut']})",
+             str(age))
+
+
+@scenario("rpt-purge", "A failing deletion keeps that Check run whole; the others are deleted and counted",
+          ["TC-RPT-060"])
+def rpt_purge_whole(ctx, s):
+    p = purge_run(ctx, s)
+    a = p["a"]
+    s.expect(p["after"][a] == p["reads"][a], f"Check {a} (a Finding locked) still stored with all its records", "")
+    s.expect(any(f"Report purge kept Check run {a}:" in x for x in p["lines"]), f"its deletion failed (log)", p["lines"][:4])
+    left = max(0, LOCK_HOLD_PURGE_S - (time.time() - p["locked_at"])) + 90
+    deadline = time.time() + left
+    while time.time() < deadline and rpt_read(ctx, a).get("_status") != 404:
+        time.sleep(3)
+    s.expect(rpt_read(ctx, a).get("_status") == 404 and row_counts(a) == [0, 0, 0, 0],
+             f"after the lock is released the next purge deletes Check {a} whole (0 rows in the four tables)", row_counts(a))
+
+
+@scenario("rpt-purge", "Purge failure logged at WARN with its Check run and cause, before the closing line",
+          ["TC-RPT-064"])
+def rpt_purge_warn(ctx, s):
+    p = purge_run(ctx, s)
+    b = p["b"]
+    lines = p["lines"]
+    idx_warn = next((k for k, x in enumerate(lines) if f"Report purge kept Check run {b}: its deletion failed (" in x), -1)
+    idx_done = next((k for k, x in enumerate(lines) if "Report purge deleted" in x), -1)
+    s.expect(idx_warn >= 0 and " WARN " in lines[idx_warn] and 0 <= idx_warn < idx_done,
+             f"WARN 'Report purge kept Check run {b}: its deletion failed (<cause>).' before the closing line",
+             lines[:6])
+    if idx_warn >= 0:
+        cause = lines[idx_warn].rsplit("its deletion failed (", 1)[-1].lower()
+        s.expect(any(k in cause for k in ("ora-", "timeout", "timed out", "cancel")) and "connection is closed" not in cause,
+                 "the cause is the deletion's own database failure (the lock wait timed out), not the rollback's",
+                 lines[idx_warn][-200:])
+    rn = [p["reads"][i].get("requestNumber") for i in (p["a"], b, p["d"])]
+    s.expect(not any(r and r in "\n".join(lines) for r in rn), "no row content appears in the purge log", "")
+    s.expect(p["after"][b] == p["reads"][b], f"Check {b} still stored with all its records", "")
+
+
+@scenario("rpt-purge", "No access to host data: RPT reads, a decision and purge runs send 0 host queries",
+          ["TC-RPT-055"])
+def rpt_no_host_data(ctx, s):
+    p = purge_run(ctx, s)
+    u2 = ri_check(ctx, "u2") or recent_completed(ctx, s, decided=False)
+    start = tap_count(MCP_TAP)
+    a = ri_codes(ctx)["A"]
+    for path in (f"/api/v1/checks/{u2}", "/api/v1/checks?" + urllib.parse.urlencode({"serviceCode": a, "requestNumber": "1001"}),
+                 "/api/v1/decision-agreement?serviceCode=" + a):
+        s.status_code(ctx.http.get(path), 200, description=f"GET {path.split('?')[0]} -> 200")
+    s.status_code(decide(ctx, u2, "REJECTED"), 201, description="decision -> 201")
+    time.sleep(12)                                          # at least one more purge run
+    s.expect(tap_count(MCP_TAP) == start and tap_count(MCP_TAP) == p["mcp0"],
+             "0 queries through the host connection (MCP tap) during reads, a decision and the purge runs",
+             tap_count(MCP_TAP) - p["mcp0"])
+    src = REPO / "src/main/java/io/agenticai/rpt"
+    hits = [f"{q.name}: {line.strip()}" for q in src.rglob("*.java") for line in q.read_text().splitlines()
+            if line.startswith("import ") and ("platform.mcp" in line or "org.springframework.ai" in line
+                                               or "chk.port" in line or "java.nio.file" in line)]
+    s.expect(not hits, "no RPT class imports the query channel types (source scan)", hits)
+
+
+# ----------------------------------------------------------------------------- rpt-inprocess / int-inprocess
+RPT_NOT_EXERCISABLE = {
+    "TC-RPT-003": ("Incomplete Check run refused", "CHK refuses a start without employeeId (400 CHK-400-START-INCOMPLETE, "
+                   "refusals group) before it calls createCheckRun; no public path hands RPT a blank value"),
+    "TC-RPT-004": ("AWAITING_DOCUMENTS with fetch mode path refused", "CHK derives the initial status from the "
+                   "version's fetch mode (path -> RUNNING); step 2 is a direct INSERT into the service schema"),
+    "TC-RPT-005": ("Manual Check starting RUNNING refused", "CHK always starts a manual Check AWAITING_DOCUMENTS"),
+    "TC-RPT-007": ("Mark RUNNING again keeps the first running time", "CHK calls markRunning once per Check (at the "
+                   "confirmation); a second confirmation is refused by CHK (409 CHK-409) before RPT"),
+    "TC-RPT-008": ("Ended Check cannot be marked RUNNING", "a confirmation of an ended Check is refused by CHK "
+                   "(409 CHK-409-CHECK-NOT-AWAITING-DOCUMENTS) before markRunning"),
+    "TC-RPT-009": ("Check not RUNNING cannot be completed", "CHK completes only the Check its pipeline runs"),
+    "TC-RPT-010": ("Unknown Check on the result port", "CHK fails only Checks it created; no public path names Check 999"),
+    "TC-RPT-012": ("Report stored whole or not at all", "the outcome `PASSED` cannot reach RPT: CHK's structured output "
+                   "admits SATISFIED / NOT_SATISFIED / UNDETERMINED only (MODEL_OUTPUT_INVALID before RPT)"),
+    "TC-RPT-062": ("Database failure while storing a report leaves nothing stored", "needs a fault injected on the "
+                   "INSERT of the second Finding — not producible through the API"),
+    "TC-RPT-016": ("Metadata disagreeing with the Check run refused", "CHK builds the metadata from the stored run"),
+    "TC-RPT-017": ("COMPLIANT refused unless every finding is SATISFIED", "CHK's Overall Status rule never hands "
+                   "COMPLIANT with a NOT_SATISFIED finding (a scripted NOT_SATISFIED gives NOT_COMPLIANT, TC-RPT-029)"),
+    "TC-RPT-018": ("Code outside its closed list refused", "CHK passes only its own closed codes; steps 2-3 are direct "
+                   "writes to the service schema"),
+    "TC-RPT-019": ("Finding without evidence refused", "CHK records a finding without evidence as UNDETERMINED with "
+                   "evidence 'NONE' (REQ-CHK-040) before RPT"),
+    "TC-RPT-020": ("UNREADABLE document without a reason refused", "DOC always gives an UNREADABLE outcome its reason; "
+                   "step 2 is a direct INSERT"),
+    "TC-RPT-023": ("Ended report never changes", "CHK completes a Check once; no public path calls completeCheck again"),
+    "TC-RPT-059": ("Incomplete failure refused", "CHK always gives a failure its detail"),
+    "TC-RPT-024": ("One Check read for the Check Engine", "getCheck's result is handed to CHK in-process only; API-RPT-001 "
+                   "is a different operation (its fields are asserted by TC-RPT-001)"),
+    "TC-RPT-046": ("Approval API flag on a rejection refused", "INT hands approvalApiExecuted=false for every REJECTED "
+                   "decision (TC-INT-013); step 2 is a direct UPDATE"),
+    "TC-RPT-053": ("Unfinished Check never purged", "needs a Check unfinished for longer than the retention period: the "
+                   "shortest period is 1 whole day and every restart (a purge-mode change) ends unfinished Checks "
+                   "INTERRUPTED; the rows cannot be aged without direct DB writes"),
+    "TC-RPT-061": ("Hand-over with an undeclared field cannot reach the store", "structural (reflection + architecture "
+                   "rule over the value types) — an in-process test the no-JUnit policy excludes; no API reaches it"),
+}
+INT_NOT_EXERCISABLE = {
+    "TC-INT-032": ("The upload carries the Check's own service version", "making version 2 current needs a load run, "
+                   "which happens only at an instance start, and every start ends all unfinished Checks INTERRUPTED "
+                   "(REQ-CHK-055, a global recovery): no Check can await uploads on version 1 while version 2 is current"),
+}
+
+
+for _tc, (_title, _reason) in RPT_NOT_EXERCISABLE.items():
+    ri_not_exercisable("rpt-inprocess", _tc, _title, _reason)
+for _tc, (_title, _reason) in INT_NOT_EXERCISABLE.items():
+    ri_not_exercisable("int-inprocess", _tc, _title, _reason)
+
+
 BASE_GROUPS = ["registry", "manual", "image", "path", "blob", "decisions", "approval", "refusals", "lifecycle"]
 RESTART_GROUPS = ["interrupted", "expiry", "notpermitted", "limits", "withdrawn", "connection", "race"] + REG_GROUPS \
-    + DOC_GROUPS
+    + DOC_GROUPS + RPTINT_GROUPS
 GROUPS = BASE_GROUPS + RESTART_GROUPS
 
 
@@ -3449,6 +4602,8 @@ def run_one(ctx, sc, fn):
             reg_state(ctx)["current"] = None      # another group may change the mode: the next REG batch reruns
         if s.group not in DOC_GROUPS:
             doc_state(ctx)["mode"] = None         # likewise for the DOC modes
+        if s.group not in RPTINT_GROUPS:
+            ri_state(ctx)["mode"] = None          # and the RPT / INT modes
         if s.group in BASE_GROUPS and ctx.mode_touched:
             use_mode(ctx, s)          # back to the normal mode (no restart when already there)
         fn(ctx, s)
@@ -3554,9 +4709,9 @@ def main():
     try:
         results = run(ctx, set(args.only or []))
     finally:
-        tap = ctx.cache.get("doc", {}).get("tap")
-        if tap and tap.poll() is None:
-            tap.terminate()
+        for tap in (ctx.cache.get("doc", {}).get("tap"), ctx.cache.get("rptint", {}).get("stub")):
+            if tap and tap.poll() is None:
+                tap.terminate()
         if ctx.mode_touched:
             print("restoring the normal local mode (no override, default parked packages)", flush=True)
             if fx.apply_mode(None, fx.PARKED_BY_DEFAULT):

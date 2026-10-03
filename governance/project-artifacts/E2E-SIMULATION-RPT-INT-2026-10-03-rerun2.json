@@ -1,0 +1,105 @@
+{
+  "runId": "20261003T130306Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 0,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "rpt-purge": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "rpt-purge",
+      "name": "Purge failure logged at WARN with its Check run and cause, before the closing line",
+      "tcs": [
+        "TC-RPT-064"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 103.9,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "at least 2 expired Check runs exist",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "another session locks a Finding of Check 129 and the run row of Check 130",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-a (rpt-a-t1003130306) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-b (rpt-b-t1003130306) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-q (rpt-q-t1003130306) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-p (rpt-p-t1003130306) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "WARN 'Report purge kept Check run 130: its deletion failed (<cause>).' before the closing line",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the cause is the deletion's own database failure (the lock wait timed out), not the rollback's",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no row content appears in the purge log",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check 130 still stored with all its records",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "Purge failure logged at WARN with its Check run and cause, before the closing line",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-rpt/packages-v3, aias.documents.storage-root=local/e2e-rpt/root, aias.check.timeout=PT60S, aias.check.deadline-check-interval=PT5S, aias.check.max-rows=500, aias.reports.retention-days=1, aias.reports.purge-schedule=*/10 * * * * *, spring.datasource.hikari.data-source-properties[oracle.jdbc.ReadTimeout]=5000, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T17:04:35"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T17:05:26"
+    }
+  ],
+  "survivingRecords": []
+}

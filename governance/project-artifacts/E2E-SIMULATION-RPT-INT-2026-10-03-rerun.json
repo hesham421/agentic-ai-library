@@ -1,0 +1,505 @@
+{
+  "runId": "20261003T125219Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 0,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "registry": {
+      "passed": 0,
+      "failed": 4,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "refusals": {
+      "passed": 0,
+      "failed": 6,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "rpt-store": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "rpt-purge": {
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "registry",
+      "name": "The four fixture services are listed with their fetch modes, without SQL or connection",
+      "tcs": [
+        "TC-REG-014",
+        "TC-REG-005",
+        "TC-REG-001"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "stopped: GET /api/v1/services -> 200",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "GET /api/v1/services -> 200",
+          "detail": "GET /api/v1/services -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "The load report shows both connections ACTIVATED and every fixture package loaded",
+      "tcs": [
+        "TC-REG-008",
+        "TC-REG-051",
+        "TC-REG-006"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "stopped: GET /api/v1/load-results -> 200",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "GET /api/v1/load-results -> 200",
+          "detail": "GET /api/v1/load-results -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "An unknown service code is 404 REG-404-SERVICE-NOT-FOUND",
+      "tcs": [
+        "TC-REG-016"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "GET /api/v1/services/no-such-service-e2e -> 404 REG-404-SERVICE-NOT-FOUND",
+          "detail": "GET /api/v1/services/no-such-service-e2e -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "A service code is read trimmed and case-insensitively",
+      "tcs": [
+        "TC-REG-075",
+        "TC-REG-073"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "GET /api/v1/services/DEMO-Manual -> 200",
+          "detail": "GET /api/v1/services/DEMO-Manual -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "upper/mixed case answers demo-manual",
+          "detail": "GET /api/v1/services/DEMO-Manual -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/services/%20%20Demo-Path%20 -> 200",
+          "detail": "GET /api/v1/services/%20%20Demo-Path%20 -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "space-padded code answers demo-path",
+          "detail": "GET /api/v1/services/%20%20Demo-Path%20 -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Start refusals: unknown service, incomplete start, unreadable body, unsupported Content-Type",
+      "tcs": [
+        "TC-CHK-003",
+        "TC-CHK-001",
+        "TC-INT-001"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "POST /api/v1/checks -> 422 CHK-422-SERVICE-NOT-AVAILABLE",
+          "detail": "POST /api/v1/checks -> 500 "
+        },
+        {
+          "ok": true,
+          "check": "no identifier returned",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "start without employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": "POST /api/v1/checks -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "start with a blank employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": "POST /api/v1/checks -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "unreadable JSON -> 400 INT-400-REQUEST-INVALID",
+          "detail": "POST /api/v1/checks -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "Content-Type text/plain -> 400 INT-400-REQUEST-INVALID",
+          "detail": "POST /api/v1/checks -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Upload refusals and limits on a waiting manual Check",
+      "tcs": [
+        "TC-INT-002",
+        "TC-DOC-013",
+        "TC-DOC-014",
+        "TC-INT-033",
+        "TC-DOC-027",
+        "TC-INT-009",
+        "TC-INT-008",
+        "TC-INT-100",
+        "TC-DOC-015",
+        "TC-INT-010"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "stopped: start demo-manual -> 202",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "start demo-manual -> 202",
+          "detail": "POST /api/v1/checks -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Maximum uploads per Check: 20 accepted, the 21st refused",
+      "tcs": [
+        "TC-INT-097",
+        "TC-DOC-071",
+        "TC-DOC-072"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "stopped: start demo-manual -> 202",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "start demo-manual -> 202",
+          "detail": "POST /api/v1/checks -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Confirmation of an unknown Check; reads of unknown Checks",
+      "tcs": [
+        "TC-CHK-038",
+        "TC-INT-088",
+        "TC-INT-094",
+        "TC-RPT-030"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "POST /api/v1/checks/987654321/upload-confirmation -> 404 CHK-404-CHECK-NOT-FOUND",
+          "detail": "POST /api/v1/checks/987654321/upload-confirmation -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/check-reports/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": "GET /api/v1/check-reports/987654321 -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": "GET /api/v1/checks/987654321 -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks/987654321/required-document-types -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": "GET /api/v1/checks/987654321/required-document-types -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/active-checks/987654321 -> 404 CHK-404-ACTIVE-CHECK-NOT-FOUND",
+          "detail": "GET /api/v1/active-checks/987654321 -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Non-numeric identifiers are refused by each module's own code",
+      "tcs": [
+        "TC-INT-005"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "GET /api/v1/check-reports/abc -> 400 INT-400-REQUEST-INVALID",
+          "detail": "GET /api/v1/check-reports/abc -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": "GET /api/v1/checks/abc/documents -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks/abc/required-document-types -> 400 INT-400-REQUEST-INVALID",
+          "detail": "GET /api/v1/checks/abc/required-document-types -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "POST /api/v1/checks/abc/upload-confirmation -> 400 INT-400-REQUEST-INVALID",
+          "detail": "POST /api/v1/checks/abc/upload-confirmation -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "POST /api/v1/checks/abc/decision -> 400 INT-400-REQUEST-INVALID",
+          "detail": "POST /api/v1/checks/abc/decision -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "POST /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": "POST /api/v1/checks/abc/documents -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks/abc -> 400 RPT-400-CHECK-ID-INVALID",
+          "detail": "GET /api/v1/checks/abc -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/active-checks/abc -> 400 CHK-400-CHECK-ID-INVALID",
+          "detail": "GET /api/v1/active-checks/abc -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/uploaded-documents?checkId=abc -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": "GET /api/v1/uploaded-documents?checkId=abc -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/uploaded-documents -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": "GET /api/v1/uploaded-documents -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Lists of a request without their keys are refused",
+      "tcs": [
+        "TC-RPT-035",
+        "TC-INT-090"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": "GET /api/v1/checks?serviceCode=demo-manual -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/checks?requestNumber=x -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": "GET /api/v1/checks?requestNumber=x -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/check-reports -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": "GET /api/v1/check-reports -> 500 "
+        },
+        {
+          "ok": false,
+          "check": "GET /api/v1/check-reports?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": "GET /api/v1/check-reports?serviceCode=demo-manual -> 500 "
+        }
+      ]
+    },
+    {
+      "group": "rpt-store",
+      "name": "No retention period configured: the scheduled purge is skipped and logged, nothing deleted",
+      "tcs": [
+        "TC-RPT-052"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 11.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-a (rpt-a-t1003125219) loaded (R1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "log: 'Report purge skipped: no valid report retention period is configured.' (purge every 10 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no purge deleted anything",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check 128 (ended more than a day ago) is still stored",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "rpt-purge",
+      "name": "Purge failure logged at WARN with its Check run and cause, before the closing line",
+      "tcs": [
+        "TC-RPT-064"
+      ],
+      "modelDependent": false,
+      "status": "FAILED",
+      "reason": "",
+      "durationSec": 50.5,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "at least 2 expired Check runs exist",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "another session locks a Finding of Check 129 and the run row of Check 130",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-a (rpt-a-t1003125219) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-b (rpt-b-t1003125219) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-q (rpt-q-t1003125219) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture rpt-p (rpt-p-t1003125219) loaded (R3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "WARN 'Report purge kept Check run 130: its deletion failed (<cause>).' before the closing line",
+          "detail": ""
+        },
+        {
+          "ok": false,
+          "check": "the cause is the database's message (the lock wait was cancelled)",
+          "detail": "-10-03T16:53:20.112+04:00  WARN 55083 --- [agentic-ai-library] [   scheduling-1] i.a.rpt.service.ReportPurgeService       : Report purge kept Check run 130: its deletion failed (Connection is closed)."
+        },
+        {
+          "ok": true,
+          "check": "no row content appears in the purge log",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check 130 still stored with all its records",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "No retention period configured: the scheduled purge is skipped and logged, nothing deleted",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-rpt/packages-v2, aias.reports.purge-schedule=*/10 * * * * *, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T16:52:27"
+    },
+    {
+      "scenario": "Purge failure logged at WARN with its Check run and cause, before the closing line",
+      "mode": "mode [spring.ai.openai.base-url=http://127.0.0.1:7293/v1beta/openai, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.registry.package-directory=local/e2e-rpt/packages-v3, aias.documents.storage-root=local/e2e-rpt/root, aias.check.timeout=PT60S, aias.check.deadline-check-interval=PT5S, aias.check.max-rows=500, aias.reports.retention-days=1, aias.reports.purge-schedule=*/10 * * * * *, spring.datasource.hikari.data-source-properties[oracle.jdbc.ReadTimeout]=5000, connections=['local-oracle', 'local-jdbc']]",
+      "at": "2026-10-03T16:53:08"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T16:53:56"
+    }
+  ],
+  "survivingRecords": []
+}

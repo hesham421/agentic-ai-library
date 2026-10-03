@@ -118,3 +118,59 @@ ALIGN-BE / CORE / DATA-DOM* list no tests and were accepted (0/0 after a clean b
 
 - Evidence is taken from the tags the api-verify checks and the E2E scenarios carry. The orchestrate STEP 4.4 second-agent coverage debate and the STEP 4.5 fixing agent were not run in this pass (scope: close the test phase honestly with the available evidence); the GAP set above is the input for them.
 - Model used for the comparison in the counted E2E run: `gemini-3.6-flash` (Gemini free tier, model calls: comparison 11, reading 1). The first attempt of the day (run on `gemini-3.8-flash`) hit that model's daily quota after 4 calls; it is kept as history (`E2E-SIMULATION-2026-10-03-quota-run.json`) and not counted.
+
+
+## Update — 2026-10-03 (INT gap closure, E2E runs `20261003T115316Z` … `20261003T130654Z`)
+
+The 12 GAP ids and TC-INT-006 were taken up by the new E2E groups `int-flow` and `int-inprocess`, plus TC-INT-027 in `rpt-store`. The history above is kept unchanged.
+
+Runs (all `scripts/e2e/simulate.py`, groups `rpt-store`, `int-flow`, `rpt-purge`, `rpt-inprocess`, `int-inprocess` plus regressions):
+
+- [`E2E-SIMULATION-RPT-INT-2026-10-03.json`](E2E-SIMULATION-RPT-INT-2026-10-03.json) / [`-run.md`](E2E-SIMULATION-RPT-INT-2026-10-03-run.md) — run `20261003T115316Z`, all new groups + `registry`/`refusals`/`decisions`: 44 PASSED · 2 FAILED (TC-RPT-052 precondition, TC-RPT-064) · 22 NOT-EXERCISABLE · 1 real comparison call.
+- [`-rerun.json`](E2E-SIMULATION-RPT-INT-2026-10-03-rerun.json) — run `20261003T125219Z`: TC-RPT-052 PASSED (precondition fixed in the runner); TC-RPT-064 FAILED again (see the defect below). Its `registry`/`refusals` 500s are environmental: the jar had been rebuilt under the running process (`NoClassDefFoundError: ch/qos/logback/...` in `logs/e2e-20261003T125219Z/`), not an app defect.
+- [`-rerun2.json`](E2E-SIMULATION-RPT-INT-2026-10-03-rerun2.json) — run `20261003T130306Z`, after the fix: TC-RPT-064 PASSED (11/11).
+- [`-regression.json`](E2E-SIMULATION-RPT-INT-2026-10-03-regression.json) (`20261003T130537Z`: `registry` 4/4, `refusals` 6/6, `decisions` 1 PASSED + 1 SKIPPED-QUOTA on `gemini-3.6-flash`) and [`-regression-decisions.json`](E2E-SIMULATION-RPT-INT-2026-10-03-regression-decisions.json) (`20261003T130654Z`: `decisions` 2/2, the app's comparison model switched to `gemini-3.5-flash` through the `AIAS_CHECK_COMPARISONMODEL_MODEL` environment variable; the runner's header still prints the profile's model).
+
+Method: the comparison model's provider is replaced by the scripted local stub `scripts/e2e/model_stub.py` (127.0.0.1:7293, override `spring.ai.openai.base-url`). A Check's document carries `E2ESTUB_<ID>`, and the stub answers that script's findings, holds its answer or returns an error status. So COMPLETED / NEEDS_MANUAL_REVIEW / NOT_COMPLIANT reports, MODEL_UNAVAILABLE (503) and TIMED_OUT (held answer) need **no free-tier quota**. One COMPLETED Check is reused across scenarios (decisions on different Checks, agreement counts, listing). The FAILED paths come from the upload-window expiry, a restart (INTERRUPTED), a 503 and a held answer. The listing cap uses 130 / 101 cheap waiting Checks of one request. Fixtures are isolated under `local/e2e-rpt/` and `local/e2e-int/`, overrides go in `local/e2e-override.properties`, and the normal mode is restored at the end of every run. There are no direct DB writes: the runner reads counts and the data dictionary through read-only SQL. Two purge-only steps go further, and both are disclosed here. (1) `rpt-purge` uses Check runs that genuinely ended more than 1 day ago (from the 2026-10-02 runs); retention `1` day and purge cron `*/10 * * * * *` delete them, which is the purge's designed effect on the local schema. (2) A second Oracle session holds `SELECT … FOR UPDATE` row locks on one Finding / one run row, then ROLLBACK, under a 5 s JDBC read timeout; this is the TC's "deletion made to fail" fault without writing a row. TC-INT-006 pauses `erp-oracle` (`docker pause`, unpaused in a `finally`) because its precondition is a database outage.
+
+Model quota (probe 2026-10-03 ~17:00 +04, one 5-token call each): `gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash` all answered 200. Minutes later `gemini-3.6-flash` and `gemini-3.7-flash` answered daily-quota 429 (limit 20; each probe was probably the model's last request). Real comparison calls of this pass: 4 (main run 1, regression 1 → 429, retry on 3.7 1 → 429, retry on 3.5 1 → COMPLETED), within the 6-call target.
+
+How the INT TCs are realised:
+- **Mode `R4`:** packages in `local/e2e-int/packages`, a 70 MB request limit, a 10 s approval timeout and short pool timeouts.
+- **Approval stub (7290):** counts every call. Exactly one call for an executed APPROVED (TC-INT-024, with 0 MCP queries). While it holds its answer, a REJECTED is recorded, then the APPROVED answers 409 and is logged at WARN (TC-INT-021). An undecided compliant Check makes 0 calls (TC-INT-015).
+- **TC-INT-023 (nothing kept):** checked through table counts, the multipart temp directory and a live heap dump, with every copy of the marker attributed by `scripts/e2e/hprof_holders.py`.
+- **TC-INT-006:** a `docker pause erp-oracle` of 1.5 s or more answers INT-500 without internals; the database is unpaused in a `finally`.
+- **INT defects:** none found; no INT source changed.
+
+**Ratio: 59 / 62 required ids PASS (95.2 %)** — PASS 59 · FAIL 0 · GAP 0 · NOT-EXERCISABLE 3 · DEFERRED 0 · OUT-OF-TRACK 0. TC blocks: 58, of which 55 PASS and 3 NOT-EXERCISABLE (TC-INT-032, -044, -096). AC rows 4/4 PASS. Before: 48 PASS · 12 GAP · 2 NOT-EXERCISABLE. AMBIGUOUS 0 · SKIPPED-QUOTA 0.
+
+| TC id | scenario | evidence | result |
+|---|---|---|---|
+| TC-INT-006 | An unexpected failure is answered without internals | E2E [int-flow] An unexpected failure (the database paused) is answered INT-500 without internals → PASSED (7 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-011 | Uploads alone never continue the Check | E2E [int-flow] Uploads alone never continue the Check: TRANSCRIPT + ID_CARD uploaded, no confirmation → PASSED (5 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-012 | Neither an upload nor a confirmation records a decision | E2E [int-flow] Neither an upload nor a confirmation records a decision → PASSED (6 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-015 | A completed compliant Check without a decision triggers no approval | E2E [int-flow] A COMPLETED compliant Check of an approval-enabled version, left undecided: no Approval API call; the Report Store never approves → PASSED (3 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-021 | A refusal after an executed approval is answered and logged | E2E [int-flow] A refusal after an executed approval: REJECTED recorded while the Approval API holds; the APPROVED answers 409 and is logged → PASSED (13 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-022 | No server-rendered report page exists | E2E [int-flow] An employee unknown to any directory is accepted; no server-rendered report page → PASSED (5 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-023 | Host Integration keeps nothing after answering | E2E [int-flow] Host Integration keeps nothing after answering (tables, multipart storage, live heap) → PASSED (16 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-024 | The only host connection is the Approval API call | E2E [int-flow] APPROVED through the Approval API: recorded as executed; the only host connection is that call → PASSED (16 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-096 | An upload reaching Document Access after the Check ended passes Document Access's ended-Check refusal | unchanged — needs Document Access to hold the Check as ended while the Check Engine still reports AWAITING_DOCUMENTS (the race of ADR-INT-025); not producible deterministically through the API | **NOT-EXERCISABLE** |
+| TC-INT-027 | The start is answered before the report exists | E2E [rpt-store] Path Check of version 3 created RUNNING and read back; the start answers before the report (40 s pipeline) → PASSED (7 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-029 | An employee unknown to any directory is accepted | E2E [int-flow] An employee unknown to any directory is accepted; no server-rendered report page → PASSED (5 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-032 | The upload carries the Check's own service version | making version 2 current needs a load run, which happens only at an instance start, and every start ends all unfinished Checks INTERRUPTED (REQ-CHK-055, a global recovery): no Check can await uploads on version 1 while version 2 is current | **NOT-EXERCISABLE** |
+| TC-INT-095 | The uploaded-documents read relays Document Access's listing operation unchanged | E2E [int-flow] The uploaded-documents read relays Document Access's listing unchanged (300 KB + 60 MB) → PASSED (8 checks, run `20261003T115316Z`) | PASS |
+| TC-INT-044 | The decision path answers in the standard form when the approval definition cannot be read | REG never deletes a stored version and every Check is pinned to one, so the approval definition read (CON-REG-012) never answers not-found. Partial evidence (an unusable stored definition 'approve-it' -> the same INT-500 path) asserted green in this scenario | **NOT-EXERCISABLE** |
+
+INT-500 is reached without fault injection only through TC-INT-006's precondition, a database outage. TC-INT-044's partial evidence is an approval-enabled fixture version whose stored definition is unusable (`approve-it`): it takes the same INT-500 path, makes 0 Approval API calls, logs the Check id and records no decision. The TC's literal precondition (the definition read answers *not-found*) needs a stored REG version removed, which REG never does and the runner may not write.
+
+### Package rows (this update)
+
+| Unit | row | blocking ids |
+|---|---|---|
+| PORTS | recorded `--passed 6 --failed 0` (TC-INT-095 now PASS) — accepted | — |
+| SVC-API-QUERY | recorded earlier `--passed 8 --failed 0` — unchanged | — |
+| SVC-API-COMMAND | withheld | TC-INT-032, TC-INT-096 |
+| API-SCENARIOS | withheld | TC-INT-032 |
+| RULE-SCENARIOS | withheld | TC-INT-096 |
+| INT-XM | withheld | TC-INT-044 |
+| XM-INT-001 | withheld | TC-INT-044 |

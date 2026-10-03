@@ -1,0 +1,239 @@
+{
+  "runId": "20261003T130654Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "decisions": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "decisions",
+      "name": "Decisions on a COMPLETED demo-manual Check (no Approval API)",
+      "tcs": [
+        "TC-INT-014",
+        "TC-INT-035",
+        "TC-INT-036",
+        "TC-INT-003",
+        "TC-RPT-039",
+        "TC-RPT-041",
+        "TC-RPT-042",
+        "TC-RPT-047",
+        "TC-RPT-049"
+      ],
+      "modelDependent": true,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 15.4,
+      "checksCreated": [
+        868
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript-pass.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "check 868 COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision agreement read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision without decidedBy -> 400 RPT-400-DECISION-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision code MAYBE -> 400 RPT-400-DECISION-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "APPROVED -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "recorded decision answered, approvalApiExecuted=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "second decision -> 409 RPT-409-DECISION-ALREADY-RECORDED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the report carries the first decision",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list of the request shows the decision",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision agreement read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision agreement (v1, COMPLIANT, APPROVED) counted +1 (3 -> 4)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "agreement without serviceCode -> 400",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "decisions",
+      "name": "Decisions refused on a non-completed and an unknown Check",
+      "tcs": [
+        "TC-RPT-040",
+        "TC-RPT-045"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [
+        869
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision on AWAITING_DOCUMENTS -> 409 RPT-409-CHECK-NOT-COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision on an unknown Check -> 404",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [],
+  "survivingRecords": [
+    {
+      "checkId": 868,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T130654Z-PASS",
+      "what": "started by 'Decisions on a COMPLETED demo-manual Check (no Approval API)'"
+    },
+    {
+      "checkId": 869,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T130654Z-DEC-WAIT-78192b",
+      "what": "started by 'Decisions refused on a non-completed and an unknown Check'"
+    }
+  ]
+}

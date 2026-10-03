@@ -1,0 +1,728 @@
+{
+  "runId": "20261003T130537Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": "the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er",
+  "groups": {
+    "registry": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "decisions": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 1,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "refusals": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "registry",
+      "name": "The four fixture services are listed with their fetch modes, without SQL or connection",
+      "tcs": [
+        "TC-REG-014",
+        "TC-REG-005",
+        "TC-REG-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-manual: available, fetch manual, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-approval: available, fetch manual, approval True",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path: available, fetch path, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-blob: available, fetch blob, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path requires TRANSCRIPT and ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no SQL / connection detail in the list",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "The load report shows both connections ACTIVATED and every fixture package loaded",
+      "tcs": [
+        "TC-REG-008",
+        "TC-REG-051",
+        "TC-REG-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/load-results -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "rows of the latest load run only",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-oracle ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-jdbc ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-manual REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-approval REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-path REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-blob REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no REJECTED row",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "An unknown service code is 404 REG-404-SERVICE-NOT-FOUND",
+      "tcs": [
+        "TC-REG-016"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/no-such-service-e2e -> 404 REG-404-SERVICE-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "A service code is read trimmed and case-insensitively",
+      "tcs": [
+        "TC-REG-075",
+        "TC-REG-073"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/DEMO-Manual -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upper/mixed case answers demo-manual",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/%20%20Demo-Path%20 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "space-padded code answers demo-path",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "decisions",
+      "name": "Decisions on a COMPLETED demo-manual Check (no Approval API)",
+      "tcs": [
+        "TC-INT-014",
+        "TC-INT-035",
+        "TC-INT-036",
+        "TC-INT-003",
+        "TC-RPT-039",
+        "TC-RPT-041",
+        "TC-RPT-042",
+        "TC-RPT-047",
+        "TC-RPT-049"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 862 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 10.3,
+      "checksCreated": [
+        862
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript-pass.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "decisions",
+      "name": "Decisions refused on a non-completed and an unknown Check",
+      "tcs": [
+        "TC-RPT-040",
+        "TC-RPT-045"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [
+        863
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision on AWAITING_DOCUMENTS -> 409 RPT-409-CHECK-NOT-COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "decision on an unknown Check -> 404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Start refusals: unknown service, incomplete start, unreadable body, unsupported Content-Type",
+      "tcs": [
+        "TC-CHK-003",
+        "TC-CHK-001",
+        "TC-INT-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks -> 422 CHK-422-SERVICE-NOT-AVAILABLE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no identifier returned",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start without employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start with a blank employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "unreadable JSON -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Content-Type text/plain -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Upload refusals and limits on a waiting manual Check",
+      "tcs": [
+        "TC-INT-002",
+        "TC-DOC-013",
+        "TC-DOC-014",
+        "TC-INT-033",
+        "TC-DOC-027",
+        "TC-INT-009",
+        "TC-INT-008",
+        "TC-INT-100",
+        "TC-DOC-015",
+        "TC-INT-010"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        864
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "type the version does not require -> 422",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0-byte file -> 400 DOC-400-INCOMPLETE-UPLOAD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no documentType part -> 400",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a path-shaped file name is accepted as text -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "file name kept as text",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a second upload of the same type -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "file above the 10 MB maximum -> 201 with a notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "oversized=true with notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both same-type uploads listed in order",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC listing -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC listing equals the INT relay",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request above the 12 MB request limit -> 413",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload for an unknown Check -> 404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Maximum uploads per Check: 20 accepted, the 21st refused",
+      "tcs": [
+        "TC-INT-097",
+        "TC-DOC-071",
+        "TC-DOC-072"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.4,
+      "checksCreated": [
+        865
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "20 uploads accepted",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload 21 -> 422 DOC-422-UPLOAD-LIMIT-REACHED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Confirmation of an unknown Check; reads of unknown Checks",
+      "tcs": [
+        "TC-CHK-038",
+        "TC-INT-088",
+        "TC-INT-094",
+        "TC-RPT-030"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/987654321/upload-confirmation -> 404 CHK-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/987654321/required-document-types -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/987654321 -> 404 CHK-404-ACTIVE-CHECK-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Non-numeric identifiers are refused by each module's own code",
+      "tcs": [
+        "TC-INT-005"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports/abc -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc/required-document-types -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/upload-confirmation -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/decision -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc -> 400 RPT-400-CHECK-ID-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/abc -> 400 CHK-400-CHECK-ID-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/uploaded-documents?checkId=abc -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/uploaded-documents -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Lists of a request without their keys are refused",
+      "tcs": [
+        "TC-RPT-035",
+        "TC-INT-090"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?requestNumber=x -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [],
+  "survivingRecords": [
+    {
+      "checkId": 862,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T130537Z-PASS",
+      "what": "started by 'Decisions on a COMPLETED demo-manual Check (no Approval API)'"
+    },
+    {
+      "checkId": 863,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T130537Z-DEC-WAIT-a7e398",
+      "what": "started by 'Decisions refused on a non-completed and an unknown Check'"
+    },
+    {
+      "checkId": 864,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T130537Z-UPL-47af58",
+      "what": "started by 'Upload refusals and limits on a waiting manual Check'"
+    },
+    {
+      "checkId": 865,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T130537Z-MAXUP-1612f6",
+      "what": "started by 'Maximum uploads per Check: 20 accepted, the 21st refused'"
+    }
+  ]
+}
