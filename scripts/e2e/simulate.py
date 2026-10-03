@@ -1309,8 +1309,1159 @@ def doc_check_ended_race(ctx, s):
                "(a test double pausing between the two) reproduces it — out of scope for this API-only runner")
 
 
+# ===================================================================================== REG groups
+# The REG test-plan TCs (governance/shared/analysis/modules/REG/P4/backend-test-plan-reg.md) realised through the
+# public HTTP API: every precondition is a fixture package folder in an ISOLATED package directory
+# (local/e2e-reg/<batch>, override aias.registry.package-directory) and/or an override activation configuration;
+# every "start" is one load run (an app restart); every observation is API-REG-001/002/003 — plus, for the
+# in-process interface, the public API of the modules that use it (CHK start -> getCurrentServicePackage /
+# RULE-REG-016/017; INT API-INT-008 -> getServicePackageVersion of the Check's pinned version).
+#
+# Batching: independent folders are judged in ONE load run (one Load Result row each), so a TC's assertions are
+# made on the rows of ITS subjects; a TC whose expectation IS the whole run (TC-REG-009, -079, -085) gets a run of
+# its own with the exact row count. Batches of a group run in a fixed order (the registry is cumulative: each
+# batch's preconditions are what the earlier ones stored), and reg_run() replays any earlier batch a scenario
+# needs when a group runs alone.
+#
+# Repeatability: the local registry keeps every stored version forever (REQ-REG-026; the runner never deletes),
+# so a service code that a TC STORES carries this run's tag (rcode(): "scholarship-request-t1003092840"); the
+# expected reason is the TC's template filled with that code. Codes a TC expects to be REJECTED / never stored keep
+# the TC's literal value. No REG scenario confirms a Check or starts a non-manual one that could run; every REG
+# mode also sets data-class REAL (both local models are FREE) so a Check that did reach the pipeline would end
+# MODEL_NOT_PERMITTED without a model call (defence in depth — the REG groups make 0 model calls).
+REG_ROOT = fx.LOCAL / "e2e-reg"
+REG_GROUPS = ["reg-rules", "reg-activation", "reg-versions", "reg-inprocess"]
+REG_SAFE = {"aias.documents.data-class": "REAL"}
+E1 = "mcp:local-oracle"
+E2 = "mcp:main-db-e2"
+LOCAL_JDBC_URL = "jdbc:oracle:thin:@localhost:1521/FREEPDB1"
+DB1_JDBC_URL = "jdbc:oracle:thin:@db1:1521/APP"
+ECHO_SQL = "SELECT :requestId AS REQUEST_NUMBER FROM DUAL"
+REG_KNOWLEDGE = ("# SYNTHETIC e2e REG fixture - local test data only, describes no real service.\n\n"
+                 "Condition: the TRANSCRIPT must state a grade point average of at least 3.00 and at least 120 credit hours.\n")
+SECOND_PORT = 7272
+LOCK_HOLD_S = 120
+
+
+def reg_tag(ctx):
+    return "t" + ctx.run_id[4:8] + ctx.run_id[9:15]          # 20261003T092840Z -> t1003092840
+
+
+def rcode(ctx, base, salt=""):
+    return f"{base}-{reg_tag(ctx)}{salt}"
+
+
+def conn(name, type="mcp", endpoint=E1, query_tool="query", dialect="oracle",
+         credential="LOCAL_ORACLE_CREDENTIAL", read_only="true", limited="false"):
+    entry = {"name": name, "type": type, "endpoint": endpoint, "dialect": dialect,
+             "credential-reference": credential, "read-only": read_only, "limited-to-views": limited}
+    if query_tool:
+        entry["query-tool"] = query_tool
+    return entry
+
+
+def jdbc(name, endpoint=LOCAL_JDBC_URL, **kw):
+    return conn(name, type="jdbc", endpoint=endpoint, query_tool=None, credential="LOCAL_JDBC_CREDENTIAL", **kw)
+
+
+def reg_override(directory, conns, extra=None):
+    props = {"aias.registry.package-directory": str(directory), **REG_SAFE}
+    for i, entry in enumerate(conns):
+        for key, value in entry.items():
+            props[f"aias.registry.connections[{i}].{key}"] = value
+    props.update(extra or {})
+    return props
+
+
+def definition(code, version=1, queries=None, fetch="manual", required=("TRANSCRIPT",), documents=None,
+               approval=None, extra=""):
+    """A service definition (RULE-REG-012 structure) as YAML text; strings JSON-quoted (valid YAML)."""
+    queries = queries if queries is not None else {"request_echo": ("main-db", ECHO_SQL)}
+    lines = [f"service: {json.dumps(code)}", f"version: {version}", "input: requestId", "queries:"]
+    for name, (connection, sql) in queries.items():
+        lines += [f"  {name}:", f"    connection: {connection}", f"    sql: {json.dumps(sql)}"]
+    lines.append("documents:")
+    lines += ["  " + line for line in (documents if documents is not None
+                                       else [f"fetch: {fetch}", "required:"] + [f"  - {t}" for t in required])]
+    lines.append("approval:")
+    lines += ["  " + line for line in (approval or ["enabled: false"])]
+    return "\n".join(lines) + "\n" + extra
+
+
+def path_documents(source="document_source", type_column="DOC_TYPE", path_column="FILE_PATH",
+                   required=("TRANSCRIPT", "ID_CARD")):
+    docs = ["fetch: path", f"source: {source}"]
+    docs += [f"type_column: {type_column}"] if type_column else []
+    docs += [f"path_column: {path_column}"] if path_column else []
+    return docs + ["required:"] + [f"  - {t}" for t in required]
+
+
+def blob_documents(source="document_source", content_column="CONTENT", required=("TRANSCRIPT",)):
+    docs = ["fetch: blob", f"source: {source}", "type_column: DOC_TYPE"]
+    docs += [f"content_column: {content_column}"] if content_column else []
+    return docs + ["required:"] + [f"  - {t}" for t in required]
+
+
+DOC_SOURCE_SQL = ("SELECT CAST('TRANSCRIPT' AS VARCHAR2(100)) AS DOC_TYPE, CAST('t.pdf' AS VARCHAR2(400)) AS FILE_PATH "
+                  "FROM DUAL WHERE :requestId IS NOT NULL")
+BLOB_SOURCE_SQL = ("SELECT CAST('TRANSCRIPT' AS VARCHAR2(100)) AS DOC_TYPE, TO_BLOB(HEXTORAW('25504446')) AS CONTENT "
+                   "FROM DUAL WHERE :requestId IS NOT NULL")
+
+
+def write_pkg(root, folder, definition_text, knowledge=REG_KNOWLEDGE, others=None):
+    """One package folder: knowledge.md / service.yaml (None = file absent) and any other files."""
+    d = root / folder
+    d.mkdir(parents=True, exist_ok=True)
+    if knowledge is not None:
+        (d / "knowledge.md").write_text(knowledge)
+    if definition_text is not None:
+        (d / "service.yaml").write_text(definition_text)
+    for name, data in (others or {}).items():
+        (d / name).write_bytes(data)
+    return d
+
+
+def reg_dir(name):
+    d = REG_ROOT / name
+    if d.exists() or d.is_symlink():
+        import shutil
+        shutil.rmtree(d)
+    d.mkdir(parents=True)
+    return d
+
+
+def rel(d):
+    return str(d.relative_to(fx.REPO))
+
+
+def reg_state(ctx):
+    return ctx.cache.setdefault("reg", {"done": [], "current": None, "rows": {}, "checks": {}, "procs": {}})
+
+
+def rows_of(rows, subject, kind="SERVICE_PACKAGE"):
+    return [x for x in rows if x["subjectKind"] == kind and x["subjectName"] == subject]
+
+
+def expect_one(s, rows, subject, outcome, reason=None, kind="SERVICE_PACKAGE", label=None, no_reason=False, **fields):
+    """Exactly one row of ``subject`` with ``outcome`` (and the exact ``reason`` / fields when given;
+    ``no_reason``: the row carries no reason)."""
+    found = rows_of(rows, subject, kind)
+    x = found[0] if len(found) == 1 else None
+    ok = x is not None and x["outcome"] == outcome and (reason is None or x.get("reason") == reason)
+    ok = ok and (not no_reason or x.get("reason") is None)
+    ok = ok and all(x.get(k) == v for k, v in fields.items())
+    short = subject if len(subject) <= 60 else subject[:30] + "…" + subject[-10:]
+    s.expect(ok, label or f"one {kind} row '{short}' {outcome}" + (" with the exact reason" if reason else ""),
+             {"found": found, "wantReason": reason, **fields})
+    return x
+
+
+def no_rows(s, rows, subject, kind=None, label=None):
+    found = [x for x in rows if x["subjectName"] == subject and (kind is None or x["subjectKind"] == kind)]
+    s.expect(not found, label or f"no row for '{subject}'", found)
+
+
+def not_stored(ctx, s, code, label=None):
+    r = ctx.http.get("/api/v1/services/" + urllib.parse.quote(code, safe=""))
+    s.status_code(r, 404, "REG-404-SERVICE-NOT-FOUND", label or f"GET /services/{code[:40]} -> 404 (no version stored)")
+
+
+def service(ctx, code):
+    r = ctx.http.get("/api/v1/services/" + urllib.parse.quote(code, safe=""))
+    return r.json if r.status == 200 and isinstance(r.json, dict) else {"_status": r.status, "_body": r.raw[:200]}
+
+
+def expect_version(ctx, s, code, number, label=None, **fields):
+    x = service(ctx, code)
+    s.expect(x.get("versionNumber") == number and all(x.get(k) == v for k, v in fields.items()),
+             label or f"GET /services/{code} -> versionNumber {number}", x)
+    return x
+
+
+def required_types(ctx, check_id):
+    r = ctx.http.get(f"/api/v1/checks/{check_id}/required-document-types")
+    return r.json if r.status == 200 else {"_status": r.status, "_body": r.raw[:200]}
+
+
+def start_refused(ctx, s, code, status_code, label):
+    r = ctx.http.post("/api/v1/checks", {"serviceCode": code, "requestNumber": ctx.request_number("REG"),
+                                         "employeeId": EMPLOYEE})
+    s.status_code(r, 422, status_code, label)
+    s.expect("checkId" not in (r.json or {}), "no Check created", r.short())
+    if r.status == 202 and isinstance(r.json, dict) and r.json.get("checkId"):
+        ctx.track(r.json["checkId"], code, "-", f"UNEXPECTED start by '{s.name}'")
+    return r
+
+
+def single_run(s, rows):
+    s.expect(len({x["loadRunAt"] for x in rows}) == 1, "every row carries the one loadRunAt of this run",
+             sorted({x["loadRunAt"] for x in rows}))
+
+
+# ---------------------------------------------------------------------------------- batch builders
+# Each returns (package directory as the app sees it, connection entries, extra override properties).
+def build_r1(ctx):
+    d = reg_dir("rules-1")
+    ds = "demo-service"
+    write_pkg(d, "demo-service", definition(ds), knowledge=None)                                   # TC-REG-003
+    write_pkg(d, "tc029", definition(ds), knowledge="")                                            # TC-REG-029
+    write_pkg(d, "tc033", definition(ds, queries={"request_details": (
+        "main-db", "SELECT STATUS FROM REQUESTS WHERE STUDENT_ID = :studentId")}))                 # TC-REG-033
+    write_pkg(d, "tc034", definition(ds, queries={"request_details": (
+        "main-db", "SELECT STATUS FROM REQUESTS WHERE REQUEST_ID = ${requestId}")}))               # TC-REG-034
+    write_pkg(d, "tc035", definition(ds, queries={"request_details": (
+        "main-db", "UPDATE requests SET status = 'A'")}))                                          # TC-REG-035
+    write_pkg(d, "tc036", definition(ds, extra="max_rows: 5000\n"))                                # TC-REG-036
+    write_pkg(d, "tc037", (f'service: "{ds}"\nversion: 1\ninput: requestId\nqueries:\n'
+                           f'  attachments:\n    connection: main-db\n    sql: "{ECHO_SQL}"\n'
+                           f'  attachments:\n    connection: main-db\n    sql: "{ECHO_SQL}"\n'
+                           "documents:\n  fetch: manual\n  required:\n    - TRANSCRIPT\n"
+                           "approval:\n  enabled: false\n"))                                       # TC-REG-037
+    write_pkg(d, "tc040", definition(ds, fetch="fax"))                                             # TC-REG-040
+    src = {"request_echo": ("main-db", ECHO_SQL), "document_source": ("main-db", DOC_SOURCE_SQL)}
+    write_pkg(d, "tc041", definition(ds, queries=src, documents=path_documents(path_column=None)))  # TC-REG-041
+    write_pkg(d, "tc042", definition(ds, queries={"request_echo": ("main-db", ECHO_SQL),
+                                                  "document_source": ("main-db", BLOB_SOURCE_SQL)},
+                                     documents=blob_documents()))                                  # TC-REG-042
+    write_pkg(d, "tc043", definition(ds, extra="storage_root: /data/files\n"))                     # TC-REG-043
+    write_pkg(d, "tc045", definition(ds, approval=["enabled: true"]))                              # TC-REG-045
+    write_pkg(d, "tc072", definition(ds, required=("TRANSCRIPT", "ID_CARD", "TRANSCRIPT")))        # TC-REG-072
+    write_pkg(d, "tc083", definition(ds, queries=src, documents=path_documents(type_column=None)))  # TC-REG-083
+    write_pkg(d, "tc084", definition(ds, queries={"request_details": ("main-db", ECHO_SQL)},
+                                     documents=path_documents(source="files")))                    # TC-REG-084
+    write_pkg(d, "tc086", definition(ds, extra="timeout: 30\n"))                                   # TC-REG-086
+    write_pkg(d, "tc087", definition(ds, extra="max_file_size: 50MB\n"))                           # TC-REG-087
+    for sub, code in INVALID_CODES:                                                                # TC-REG-076
+        write_pkg(d, f"tc076{sub}", definition(code))
+    write_pkg(d, "long-code", definition("a" * 150))                                              # TC-REG-097
+    write_pkg(d, "a", definition("Scholarship-Request"))                                           # TC-REG-074
+    write_pkg(d, "b", definition("scholarship-request"))
+    write_pkg(d, "scholarship-request", definition("scholarship-request", fetch="fax"))            # TC-REG-063
+    outside = reg_dir("outside")                                                                   # TC-REG-017
+    write_pkg(outside, "tc017-pkg", definition("outside-service"))
+    os.symlink(os.path.join("..", "outside", "tc017-pkg"), d / "tc017-link")
+    conns = [conn("main-db"), conn("ftp-db", type="ftp"), conn("c" * 101),                         # 054, 094
+             jdbc("blob-db", endpoint="jdbc:oracle:thin:@" + "h" * (501 - len("jdbc:oracle:thin:@")))]  # 095
+    return rel(d), conns, {}
+
+
+INVALID_CODES = [("a", "scholarship request!"), ("b", "a_b"), ("c", "-a"), ("d", "a-"), ("e", "a--b"),
+                 ("f", "a" * 101), ("g", ""), ("g2", "   ")]
+
+
+def build_r085(ctx):
+    d = reg_dir("rules-085")
+    write_pkg(d, "svc-ok", definition(rcode(ctx, "svc-ok")))
+    write_pkg(d, "svc-fax", definition("svc-fax", fetch="fax"))
+    return rel(d), [conn("main-db"), conn("bad-db", read_only="false")], {}
+
+
+def build_r009(ctx):
+    d = reg_dir("rules-009")
+    write_pkg(d, "svc-ok", definition(rcode(ctx, "svc-ok")))
+    write_pkg(d, "svc-two", definition(rcode(ctx, "svc-two")))
+    return rel(d), [conn("main-db")], {}
+
+
+def code_099(ctx):
+    tag = reg_tag(ctx)
+    return "a" * 49 + "-" + "b" * (50 - len(tag)) + tag
+
+
+def build_r2b(ctx):
+    d = reg_dir("rules-2b")
+    write_pkg(d, "tc048-one", definition(rcode(ctx, "shared-one")))                                # TC-REG-048
+    write_pkg(d, "tc048-two", definition(rcode(ctx, "shared-two")))
+    write_pkg(d, "tc038", definition(rcode(ctx, "path-request"), queries={
+        "request_echo": ("main-db", ECHO_SQL), "document_source": ("main-db", DOC_SOURCE_SQL)},
+        documents=path_documents()))                                                               # TC-REG-038/039
+    write_pkg(d, "tc093-one", definition(rcode(ctx, "long-run-one")))                              # TC-REG-093
+    write_pkg(d, "tc093-two", definition(rcode(ctx, "long-run-two")))
+    write_pkg(d, "p" * 201, definition("long-folder-service"))
+    write_pkg(d, "tc099", definition(code_099(ctx)))                                               # TC-REG-099
+    write_pkg(d, "tc082", definition("demo-service", queries={
+        "request_echo": ("main-db", ECHO_SQL), "document_source": ("docs-jdbc", BLOB_SOURCE_SQL)},
+        documents=blob_documents(content_column=None)))                                            # TC-REG-082
+    return rel(d), [conn("main-db"), jdbc("docs-jdbc")], {}
+
+
+def build_r2a(ctx):
+    d = reg_dir("rules-2a")
+    write_pkg(d, "demo-service", definition("demo-service"),
+              others={"request-4711.pdf": synth.make_pdf(["SYNTHETIC - a request file that must not be here"])})  # 064
+    write_pkg(d, "a", definition("vehicle-permit"))                                                # TC-REG-098
+    write_pkg(d, "b", definition("Vehicle-Permit", fetch="fax"))
+    return rel(d), [conn("main-db")], {}
+
+
+def build_r079(ctx):
+    d = reg_dir("rules-079")
+    write_pkg(d, "svc-one", definition(rcode(ctx, "svc-one", "i")))
+    write_pkg(d, "svc-two", definition(rcode(ctx, "svc-two", "i")))
+    return rel(d), [conn("main-db")], {}
+
+
+def build_a_two(ctx):
+    d = reg_dir("act-two")
+    write_pkg(d, "scholarship-request", definition(rcode(ctx, "scholarship-request", "a")))
+    write_pkg(d, "vehicle-permit", definition(rcode(ctx, "vehicle-permit", "a")))
+    return rel(d)
+
+
+def build_a1(ctx):
+    return build_a_two(ctx), [conn("main-db", endpoint=E1, limited="true")], {}
+
+
+def build_a2(ctx):
+    return build_a_two(ctx), [conn("main-db", endpoint=E2, limited="true")], {}
+
+
+def build_a3(ctx):
+    return rel(reg_dir("act-empty")), [conn("main-db", endpoint=E2, limited="true")], {}
+
+
+LONG_DIR = "/srv/" + "d" * 245
+MISSING_DIR = "/srv/aias/packages"
+
+
+def build_a4(ctx):
+    return LONG_DIR, [conn("main-db", endpoint=E2, limited="false")], {}
+
+
+def build_a5(ctx):
+    return MISSING_DIR, [conn("aux-db")], {}
+
+
+def build_a6(ctx):
+    return MISSING_DIR, [conn("main-db"), conn("main-db")], {}
+
+
+def build_a7(ctx):
+    return MISSING_DIR, [conn("main-db", read_only="false")], {}
+
+
+def archive_pkg(ctx, root):
+    mt = rcode(ctx, "main-db")
+    write_pkg(root, "archive-request", definition(rcode(ctx, "archive-request"), queries={
+        "request_echo": (mt, ECHO_SQL), "document_source": (mt, BLOB_SOURCE_SQL)}, documents=blob_documents()))
+
+
+def v_conns(ctx, mt_kind):
+    mt = rcode(ctx, "main-db")
+    entries = [conn("main-db")]
+    if mt_kind == "jdbc":
+        entries.append(jdbc(mt, endpoint=DB1_JDBC_URL))
+    elif mt_kind == "mcp":
+        entries.append(conn(mt, endpoint="http://mcp1:8080"))
+    return entries
+
+
+def x_def(ctx, version):
+    required = {2: ("TRANSCRIPT",), 3: ("TRANSCRIPT", "ID_CARD"), 4: ("ID_CARD",)}[version]
+    return definition(rcode(ctx, "request-versions"), version=version, required=required)
+
+
+def e_def(ctx, content):
+    return definition(rcode(ctx, "edited-request"), version=3,
+                      required=("TRANSCRIPT",) if content == 1 else ("TRANSCRIPT", "ID_CARD"))
+
+
+def build_v1(ctx):
+    d = reg_dir("versions-1")
+    write_pkg(d, "sr", definition(rcode(ctx, "scholarship-request"), version=3))                   # TC-REG-020
+    write_pkg(d, "tc025", x_def(ctx, 2))
+    write_pkg(d, "tc022", e_def(ctx, 1))
+    archive_pkg(ctx, d)
+    return rel(d), v_conns(ctx, "jdbc"), {}
+
+
+def build_v2(ctx):
+    d = reg_dir("versions-2")
+    write_pkg(d, "sr", definition(rcode(ctx, "scholarship-request"), version=2,
+                                  required=("TRANSCRIPT", "ID_CARD")))                             # TC-REG-023
+    write_pkg(d, "tc025", x_def(ctx, 3))
+    write_pkg(d, "tc022", e_def(ctx, 2))                                                           # TC-REG-022
+    archive_pkg(ctx, d)
+    write_pkg(d, "scholarship-request", definition(rcode(ctx, "scholarship-request", "u")))        # TC-REG-090
+    write_pkg(d, "vehicle-permit", definition(rcode(ctx, "vehicle-permit", "u")))
+    locked = write_pkg(d, "demo-service", definition("demo-service")) / "service.yaml"
+    os.chmod(locked, 0)
+    return rel(d), v_conns(ctx, "mcp"), {}                                                         # TC-REG-091
+
+
+def build_v3(ctx):
+    d = reg_dir("versions-3")
+    write_pkg(d, "tc025", x_def(ctx, 4))                                                           # TC-REG-021
+    write_pkg(d, "tc022", e_def(ctx, 1))                                                           # TC-REG-022
+    write_pkg(d, "a", definition(rcode(ctx, "scholarship-request"), version=4))                    # TC-REG-004
+    write_pkg(d, "b", definition(rcode(ctx, "scholarship-request"), version=4))
+    archive_pkg(ctx, d)
+    return rel(d), v_conns(ctx, "jdbc"), {}
+
+
+def build_v4(ctx):
+    d = reg_dir("versions-4")
+    folder = write_pkg(d, "scholarship-request", None)                                            # TC-REG-081
+    fifo = folder / "service.yaml"
+    os.mkfifo(fifo)
+    text = definition(rcode(ctx, "scholarship-request"), version=4)
+
+    def feed():   # writes the definition only once the app opens the file: its mtime changes during the read
+        try:
+            with open(fifo, "w") as f:
+                f.write(text)
+        except OSError:
+            pass
+    threading.Thread(target=feed, daemon=True).start()
+    archive_pkg(ctx, d)
+    return rel(d), v_conns(ctx, None), {}
+
+
+def build_v5(ctx):
+    d = reg_dir("versions-5")
+    archive_pkg(ctx, d)
+    # scholarship-request's version-3 folder, unchanged: the service stays available for TC-REG-080 (next group)
+    write_pkg(d, "sr", definition(rcode(ctx, "scholarship-request"), version=3))
+    return rel(d), v_conns(ctx, "mcp"), {}                                                         # TC-REG-092
+
+
+def build_i080(ctx):
+    d = reg_dir("inprocess-080")
+    write_pkg(d, "scholarship-request", definition(rcode(ctx, "scholarship-request"), version=4))
+    return rel(d), [conn("main-db")], {"aias.registry.load-lock-timeout": "PT30S"}
+
+
+# ------------------------------------------------------------------------------------ after hooks
+def after_v1(ctx, s):
+    check_id = start(ctx, s, rcode(ctx, "request-versions"), ctx.request_number("REG-V2"), "AWAITING_DOCUMENTS")
+    reg_state(ctx)["checks"]["K2"] = check_id
+
+
+def after_v2(ctx, s):
+    check_id = start(ctx, s, rcode(ctx, "request-versions"), ctx.request_number("REG-V3"), "AWAITING_DOCUMENTS")
+    reg_state(ctx)["checks"]["K3"] = check_id
+
+
+# ---------------------------------------------------------------------------------------- runners
+def stop_app():
+    pid = fx.pid_alive(fx.APP_PID)
+    if pid:
+        os.kill(pid, 15)
+        for _ in range(60):
+            try:
+                os.kill(pid, 0)
+                time.sleep(0.5)
+            except OSError:
+                return
+        os.kill(pid, 9)
+
+
+def run_two_instances(ctx, s, override):
+    """TC-REG-079: a second instance (port 7272, same schema) and the app started at the same moment."""
+    fx.write_override(override)
+    fx.set_parked(set(fx.PARKED_BY_DEFAULT))
+    stop_app()
+    log_b = fx.LOGS / f"aias-local-second-{ctx.run_id}.log"
+    proc = subprocess.Popen(["java", "-jar", str(fx.JAR.relative_to(fx.REPO)), "--spring.profiles.active=local",
+                             f"--server.port={SECOND_PORT}"], cwd=fx.REPO, stdout=open(log_b, "w"),
+                            stderr=subprocess.STDOUT, start_new_session=True)
+    reg_state(ctx)["procs"]["second"] = (proc, log_b)
+    try:
+        fx.restart_app(build=False)
+    except SystemExit as e:
+        raise Hard(f"the app did not start beside the second instance: {e}")
+    for _ in range(180):
+        if fx.http_ok(f"http://127.0.0.1:{SECOND_PORT}/api/v1/services"):
+            break
+        if proc.poll() is not None:
+            raise Hard(f"the second instance exited during start-up (code {proc.returncode}); see {log_b}")
+        time.sleep(1)
+    else:
+        raise Hard("the second instance did not become healthy within 180 s")
+    ctx.mode_touched = True
+    ctx.restarts.append({"scenario": s.name, "mode": f"two instances (7271 + {SECOND_PORT}), dir {override['aias.registry.package-directory']}",
+                         "at": dt.datetime.now().isoformat(timespec="seconds")})
+
+
+def run_with_lock(ctx, s, override):
+    """TC-REG-080: another session holds LOCK TABLE REG_LOAD_RESULT IN EXCLUSIVE MODE (a sqlplus session in the local
+    Oracle container; the password goes through the environment, never on a command line). The TC's 60 s hold is
+    counted from the instance's lock request: the lock is taken before the restart, and stopping the old app and
+    booting the new one take ~30-40 s, so it is held LOCK_HOLD_S = 120 s to outlast the 30 s timeout."""
+    st = reg_state(ctx)
+    st["checks"]["I080-prev"] = load_rows(ctx, s)
+    env = dict(os.environ, PW=fx.read_property(PROFILE, "spring.datasource.password") or "",
+               DBU=fx.read_property(PROFILE, "spring.datasource.username") or "")
+    proc = subprocess.Popen(["docker", "exec", "-i", "-e", "PW", "-e", "DBU", "erp-oracle", "bash", "-c",
+                             'sqlplus -s -L "$DBU/$PW@localhost:1521/FREEPDB1"'],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, text=True)
+    proc.stdin.write("WHENEVER SQLERROR EXIT FAILURE\nSET FEEDBACK OFF\nLOCK TABLE REG_LOAD_RESULT IN EXCLUSIVE MODE;\nPROMPT LOCKED\n"
+                     "EXEC DBMS_SESSION.SLEEP(" + str(LOCK_HOLD_S) + ");\nROLLBACK;\nPROMPT RELEASED\nEXIT\n")
+    proc.stdin.close()
+    line = ""
+    for _ in range(5):
+        line = proc.stdout.readline()
+        if not line or "LOCKED" in line:
+            break
+    s.require("LOCKED" in line, "another session holds LOCK TABLE REG_LOAD_RESULT IN EXCLUSIVE MODE", line[:200])
+    st["procs"]["lock"] = (proc, time.time())
+    use_mode(ctx, s, override, fx.PARKED_BY_DEFAULT, force=True)
+
+
+REG_BATCHES = {
+    "R1": {"build": build_r1}, "R085": {"build": build_r085}, "R009": {"build": build_r009},
+    "R2b": {"build": build_r2b}, "R2a": {"build": build_r2a}, "R079": {"build": build_r079, "runner": run_two_instances},
+    "A1": {"build": build_a1}, "A2": {"build": build_a2}, "A3": {"build": build_a3}, "A4": {"build": build_a4},
+    "A5": {"build": build_a5}, "A6": {"build": build_a6}, "A7": {"build": build_a7},
+    "V1": {"build": build_v1, "after": after_v1}, "V2": {"build": build_v2, "after": after_v2},
+    "V3": {"build": build_v3}, "V4": {"build": build_v4}, "V5": {"build": build_v5},
+    "I080": {"build": build_i080, "runner": run_with_lock, "requires": ["V1"]},
+}
+REG_SEQ = [["R1", "R085", "R009", "R2b", "R2a", "R079"], ["A1", "A2", "A3", "A4", "A5", "A6", "A7"],
+           ["V1", "V2", "V3", "V4", "V5"], ["I080"]]
+
+
+def reg_execute(ctx, s, name):
+    st = reg_state(ctx)
+    spec = REG_BATCHES[name]
+    directory, conns, extra = spec["build"](ctx)
+    override = reg_override(directory, conns, extra)
+    st["current"] = None
+    if spec.get("runner"):
+        spec["runner"](ctx, s, override)
+    else:
+        use_mode(ctx, s, override, fx.PARKED_BY_DEFAULT, force=True)
+    st["rows"][name] = load_rows(ctx, s)
+    st["done"].append(name)
+    st["current"] = name
+    print(f"    (REG load run {name}: {len(st['rows'][name])} Load Result rows)", flush=True)
+    if spec.get("after"):
+        spec["after"](ctx, s)
+
+
+def reg_run(ctx, s, name):
+    """Puts the app in REG batch ``name`` (one load run), first replaying every earlier batch of its sequence
+    (and the batches it requires) not yet run in this runner; returns that run's Load Result rows."""
+    st = reg_state(ctx)
+    if st["current"] == name:
+        return st["rows"][name]
+    if name in st["done"]:
+        raise Skip("SKIPPED-PRECONDITION", f"REG batch {name} already ran and the registry has moved on; "
+                                           "rerun its group alone to repeat it")
+    for need in REG_BATCHES[name].get("requires", []):
+        if need not in st["done"]:
+            reg_run(ctx, s, need)
+    sequence = next(seq for seq in REG_SEQ if name in seq)
+    for prior in sequence[:sequence.index(name)]:
+        if prior not in st["done"]:
+            reg_execute(ctx, s, prior)
+    reg_execute(ctx, s, name)
+    return st["rows"][name]
+
+
+def reg_rows(ctx, s, name):
+    """The rows a batch recorded (it must have run in this runner)."""
+    st = reg_state(ctx)
+    if name not in st["rows"]:
+        reg_run(ctx, s, name)
+    return st["rows"][name]
+
+
+# -------------------------------------------------------------------------------------- reg-rules
+RULE_008_FAX = "The fetch mode \"fax\" is not supported; use path, blob or manual."
+RULE_009_DS = "The documents of \"demo-service\" cannot be fetched: the document source is incomplete."
+
+
+def rule_case(tc, title, folder, reason, check_404=None):
+    @scenario("reg-rules", title, [tc])
+    def case(ctx, s):
+        rows = reg_run(ctx, s, "R1")
+        expect_one(s, rows, folder, "REJECTED", reason)
+        if check_404:
+            not_stored(ctx, s, check_404)
+    return case
+
+
+rule_case("TC-REG-003", "Folder with only a service definition is rejected", "demo-service",
+          "The service package \"demo-service\" is incomplete: it needs both its service knowledge and its service "
+          "definition.", "demo-service")
+rule_case("TC-REG-029", "Empty service knowledge is rejected", "tc029",
+          "The service knowledge of \"demo-service\" is empty.")
+rule_case("TC-REG-033", "A query using another parameter than the declared input is rejected", "tc033",
+          "The query \"request_details\" uses \":studentId\"; queries take only the bind parameter \":requestId\".")
+rule_case("TC-REG-034", "A query using a substitution marker is rejected", "tc034",
+          "The query \"request_details\" uses \"${requestId}\"; queries take only the bind parameter \":requestId\".")
+rule_case("TC-REG-035", "A query that is not a single SELECT is rejected", "tc035",
+          "The query \"request_details\" must be one SELECT statement; it cannot change data or run several statements.")
+rule_case("TC-REG-036", "A service definition declaring a check limit is rejected", "tc036",
+          "The service definition of \"demo-service\" contains \"max_rows\", which a service definition cannot set.")
+rule_case("TC-REG-037", "Two queries with one name are rejected", "tc037",
+          "The query name \"attachments\" is used twice in \"demo-service\".")
+rule_case("TC-REG-040", "An unknown fetch mode is rejected", "tc040", RULE_008_FAX)
+rule_case("TC-REG-041", "Fetch mode path without a path column is rejected", "tc041", RULE_009_DS)
+rule_case("TC-REG-042", "Blob documents over an mcp connection are rejected", "tc042",
+          "Documents stored in the database are read over a read-only jdbc connection; \"main-db\" is not one.")
+rule_case("TC-REG-043", "A service definition declaring a file location is rejected", "tc043",
+          "The service definition of \"demo-service\" contains \"storage_root\", which a service definition cannot set.",
+          "demo-service")
+rule_case("TC-REG-045", "Enabled approval without a definition is rejected", "tc045",
+          "The approval API of \"demo-service\" is enabled but not defined.")
+rule_case("TC-REG-072", "A required document type declared twice is rejected", "tc072",
+          "The document type \"TRANSCRIPT\" is required more than once in \"demo-service\".", "demo-service")
+rule_case("TC-REG-083", "Fetch mode path without a type column is rejected", "tc083", RULE_009_DS)
+rule_case("TC-REG-084", "A document source naming an undeclared query is rejected", "tc084", RULE_009_DS)
+rule_case("TC-REG-086", "A timeout in a service definition is rejected", "tc086",
+          "The service definition of \"demo-service\" contains \"timeout\", which a service definition cannot set.")
+rule_case("TC-REG-087", "A maximum file size in a service definition is rejected", "tc087",
+          "The service definition of \"demo-service\" contains \"max_file_size\", which a service definition cannot set.")
+
+
+@scenario("reg-rules", "An invalid service code is rejected (sub-cases a-g, one folder each)", ["TC-REG-076"])
+def reg_invalid_codes(ctx, s):
+    rows = reg_run(ctx, s, "R1")
+    for sub, code in INVALID_CODES:
+        canonical = code.strip().lower()
+        expect_one(s, rows, f"tc076{sub}", "REJECTED",
+                   f"The service code \"{canonical}\" is not valid; use lower-case letters, digits and single hyphens, "
+                   "at most 100 characters.", label=f"({sub}) '{code[:20]}' REJECTED with the RULE-REG-022 message")
+        if canonical:
+            not_stored(ctx, s, canonical, f"({sub}) no Service Package for '{canonical[:20]}'")
+
+
+@scenario("reg-rules", "An over-length invalid service code is shortened on its Load Result row", ["TC-REG-097"])
+def reg_long_code(ctx, s):
+    rows = reg_run(ctx, s, "R1")
+    code = "a" * 150
+    x = expect_one(s, rows, "long-code", "REJECTED",
+                   f"The service code \"{code}\" is not valid; use lower-case letters, digits and single hyphens, at "
+                   "most 100 characters.")
+    s.expect(x and len(x.get("reason") or "") <= 1000, "reason at most 1000 characters", x)
+    s.expect(x and x.get("serviceCode") == "a" * 99 + "…", "row serviceCode = 99 × a + «…» (100 characters)",
+             x and x.get("serviceCode"))
+    not_stored(ctx, s, code[:100], "no Service Package created")
+
+
+@scenario("reg-rules", "Two folders whose codes differ only in case are both rejected", ["TC-REG-074"])
+def reg_case_duplicates(ctx, s):
+    rows = reg_run(ctx, s, "R1")
+    reason = ("The service code \"scholarship-request\" is declared by more than one package folder; keep one folder "
+              "per service.")
+    expect_one(s, rows, "a", "REJECTED", reason, label="folder a (Scholarship-Request) REJECTED, RULE-REG-002")
+    expect_one(s, rows, "b", "REJECTED", reason, label="folder b (scholarship-request) REJECTED, RULE-REG-002")
+
+
+@scenario("reg-rules", "A failing pilot package is reported and never supplied", ["TC-REG-063"])
+def reg_failing_pilot(ctx, s):
+    rows = reg_run(ctx, s, "R1")
+    expect_one(s, rows, "scholarship-request", "REJECTED", RULE_008_FAX)
+    r = ctx.http.get("/api/v1/services/scholarship-request")
+    s.status_code(r, 404, "REG-404-SERVICE-NOT-FOUND", "no version of scholarship-request is stored")
+    s.expect((r.json or {}).get("detail") == "The service \"scholarship-request\" is not available.",
+             "the RULE-REG-016 message (REG-404-SERVICE-NOT-FOUND, the code of the in-process refusal)", r.short())
+    start_refused(ctx, s, "scholarship-request", "CHK-422-SERVICE-NOT-AVAILABLE",
+                  "a Check of scholarship-request receives no package -> 422 CHK-422-SERVICE-NOT-AVAILABLE")
+
+
+@scenario("reg-rules", "A folder outside the package directory is never loaded (sibling dir, symlink inside)",
+          ["TC-REG-017"])
+def reg_outside(ctx, s):
+    rows = reg_run(ctx, s, "R1")
+    no_rows(s, rows, "tc017-link", label="no Load Result row for the symbolic link pointing outside")
+    no_rows(s, rows, "tc017-pkg", label="no Load Result row for the sibling folder")
+    s.expect(not [x for x in rows if x.get("serviceCode") == "outside-service"], "no row declares outside-service",
+             [x for x in rows if x.get("serviceCode") == "outside-service"])
+    not_stored(ctx, s, "outside-service", "no version stored from the outside folder")
+
+
+@scenario("reg-rules", "Activation refusals: unknown type, over-length name and endpoint; main-db ACTIVATED",
+          ["TC-REG-054", "TC-REG-094", "TC-REG-095"])
+def reg_activation_refusals(ctx, s):
+    rows = reg_run(ctx, s, "R1")
+    expect_one(s, rows, "ftp-db", "REJECTED", "The connection \"ftp-db\" has the type \"ftp\"; use mcp or jdbc.",
+               kind="CONNECTION")
+    expect_one(s, rows, "main-db", "ACTIVATED", kind="CONNECTION", label="main-db ACTIVATED in the same run")
+    name = "c" * 101
+    expect_one(s, rows, name, "REJECTED", f"The connection name of \"{name}\" has 101 characters; at most 100 are "
+               "allowed.", kind="CONNECTION", label="101-character connection REJECTED; subjectName is the full name")
+    expect_one(s, rows, "blob-db", "REJECTED", "The endpoint of \"blob-db\" has 501 characters; at most 500 are "
+               "allowed.", kind="CONNECTION")
+    for refused in ("ftp-db", name, "blob-db"):
+        s.expect(not [x for x in rows if x["subjectName"] == refused and x["outcome"] in ("ACTIVATED", "UPDATED")],
+                 f"{refused[:12]} not registered")
+
+
+@scenario("reg-rules", "Failing and succeeding items in one load run each get their own outcome", ["TC-REG-085"])
+def reg_mixed_run(ctx, s):
+    rows = reg_run(ctx, s, "R085")
+    s.expect(len(rows) == 4, "one load run records exactly 4 rows", rows)
+    single_run(s, rows)
+    expect_one(s, rows, "main-db", "ACTIVATED", kind="CONNECTION")
+    expect_one(s, rows, "bad-db", "REJECTED", "The connection \"bad-db\" must use a read-only database user.",
+               kind="CONNECTION")
+    expect_one(s, rows, "svc-ok", "REGISTERED", no_reason=True, serviceCode=rcode(ctx, "svc-ok"))
+    expect_one(s, rows, "svc-fax", "REJECTED", RULE_008_FAX)
+    x = service(ctx, rcode(ctx, "svc-ok"))
+    s.expect(x.get("available") is True and x.get("versionNumber") == 1, "svc-ok readable with API-REG-002", x)
+
+
+@scenario("reg-rules", "Earlier load results are removed at a new run", ["TC-REG-009"])
+def reg_results_replaced(ctx, s):
+    prev = reg_rows(ctx, s, "R085")
+    rows = reg_run(ctx, s, "R009")
+    s.expect(len(prev) == 4, "the previous load run left 4 rows", len(prev))
+    s.expect(len(rows) == 3, "the load report holds exactly 3 rows (2 folders, 1 connection)", rows)
+    single_run(s, rows)
+    s.expect(rows and prev and rows[0]["loadRunAt"] != prev[0]["loadRunAt"], "all with the loadRunAt of the new run",
+             (rows[:1], prev[:1]))
+    s.expect(not {x["loadResultId"] for x in rows} & {x["loadResultId"] for x in prev}, "no earlier row survives")
+
+
+@scenario("reg-rules", "One connection defined once and shared by two packages", ["TC-REG-048"])
+def reg_shared_connection(ctx, s):
+    rows = reg_run(ctx, s, "R2b")
+    s.expect(len(rows_of(rows, "main-db", "CONNECTION")) == 1, "1 CONNECTION row main-db", rows_of(rows, "main-db", "CONNECTION"))
+    expect_one(s, rows, "main-db", "ACTIVATED", kind="CONNECTION")
+    expect_one(s, rows, "tc048-one", "REGISTERED", serviceCode=rcode(ctx, "shared-one"))
+    expect_one(s, rows, "tc048-two", "REGISTERED", serviceCode=rcode(ctx, "shared-two"))
+    for code in (rcode(ctx, "shared-one"), rcode(ctx, "shared-two")):
+        x = service(ctx, code)
+        s.expect(x.get("available") is True and x.get("versionNumber") == 1, f"{code} stored", x)
+
+
+@scenario("reg-rules", "One fetch mode and the required document types recorded per version",
+          ["TC-REG-038", "TC-REG-039"])
+def reg_fetch_and_types(ctx, s):
+    rows = reg_run(ctx, s, "R2b")
+    expect_one(s, rows, "tc038", "REGISTERED")
+    x = expect_version(ctx, s, rcode(ctx, "path-request"), 1, "API-REG-002: fetchMode path", fetchMode="path")
+    s.expect(sorted(x.get("requiredDocumentTypes") or []) == ["ID_CARD", "TRANSCRIPT"],
+             "API-REG-002: requiredDocumentTypes TRANSCRIPT and ID_CARD (2 rows; the API document fixes no order)", x)
+
+
+@scenario("reg-rules", "A folder whose name exceeds 200 characters is rejected; the run continues", ["TC-REG-093"])
+def reg_long_folder(ctx, s):
+    rows = reg_run(ctx, s, "R2b")
+    name = "p" * 201
+    found = [x for x in rows if x["subjectKind"] == "SERVICE_PACKAGE" and x["subjectName"] in
+             ("tc093-one", "tc093-two", "p" * 199 + "…")]
+    s.expect(len(found) == 3, "3 SERVICE_PACKAGE rows for the TC's folders", found)
+    expect_one(s, rows, "tc093-one", "REGISTERED")
+    expect_one(s, rows, "tc093-two", "REGISTERED")
+    x = expect_one(s, rows, "p" * 199 + "…", "REJECTED",
+                   f"The folder name of \"{name}\" has 201 characters; at most 200 are allowed.",
+                   label="the 201-character folder REJECTED (RULE-REG-027); subjectName = 199 × p + «…»")
+    s.expect(x and len(x["subjectName"]) == 200, "subjectName has exactly 200 characters", x and len(x["subjectName"]))
+    not_stored(ctx, s, "long-folder-service")
+
+
+@scenario("reg-rules", "A 100-character service code with single hyphens is accepted (boundary pass)", ["TC-REG-099"])
+def reg_code_boundary(ctx, s):
+    rows = reg_run(ctx, s, "R2b")
+    code = code_099(ctx)
+    s.require(len(code) == 100, "the fixture code has 100 characters", len(code))
+    expect_one(s, rows, "tc099", "REGISTERED", no_reason=True, serviceCode=code)
+    r = ctx.http.get("/api/v1/services/" + code)
+    s.status_code(r, 200, description="API-REG-002 -> 200")
+    s.expect(r.json and r.json.get("serviceCode") == code and r.json.get("available") is True,
+             "the 100-character serviceCode, available = true", r.short())
+
+
+@scenario("reg-rules", "Fetch mode blob without a content column is rejected", ["TC-REG-082"])
+def reg_blob_no_content(ctx, s):
+    rows = reg_run(ctx, s, "R2b")
+    expect_one(s, rows, "docs-jdbc", "ACTIVATED", kind="CONNECTION", label="jdbc connection docs-jdbc registered")
+    expect_one(s, rows, "tc082", "REJECTED", RULE_009_DS)
+
+
+@scenario("reg-rules", "A package folder holding another file is rejected", ["TC-REG-064"])
+def reg_foreign_file(ctx, s):
+    rows = reg_run(ctx, s, "R2a")
+    expect_one(s, rows, "demo-service", "REJECTED",
+               "The package folder \"demo-service\" holds \"request-4711.pdf\"; a package folder holds only its service "
+               "knowledge and its service definition.")
+    not_stored(ctx, s, "demo-service")
+
+
+@scenario("reg-rules", "A valid folder is rejected as a duplicate even when its twin fails another rule", ["TC-REG-098"])
+def reg_duplicate_twin(ctx, s):
+    rows = reg_run(ctx, s, "R2a")
+    found = [x for x in rows if x["subjectKind"] == "SERVICE_PACKAGE" and x["subjectName"] in ("a", "b")]
+    s.expect(len(found) == 2, "2 SERVICE_PACKAGE rows (a, b)", found)
+    expect_one(s, rows, "a", "REJECTED", "The service code \"vehicle-permit\" is declared by more than one package "
+               "folder; keep one folder per service.")
+    expect_one(s, rows, "b", "REJECTED", RULE_008_FAX)
+    not_stored(ctx, s, "vehicle-permit")
+
+
+@scenario("reg-rules", "Two instances starting together produce one complete load report", ["TC-REG-079"])
+def reg_two_instances(ctx, s):
+    rows = reg_run(ctx, s, "R079")
+    st = reg_state(ctx)
+    proc, log_b = st["procs"].get("second", (None, None))
+    try:
+        r_b = Client(f"http://127.0.0.1:{SECOND_PORT}").get("/api/v1/load-results")
+        s.expect(r_b.status == 200 and sorted(x["loadResultId"] for x in r_b.json) ==
+                 sorted(x["loadResultId"] for x in rows), "both instances serve the same load report", r_b.short())
+        s.expect(len(rows) == 3, "exactly 3 rows", rows)
+        single_run(s, rows)
+        outcomes = sorted(x["outcome"] for x in rows)
+        s.expect(outcomes in (["ACTIVATED", "REGISTERED", "REGISTERED"], ["ACTIVATED", "UNCHANGED", "UNCHANGED"],
+                              ["UNCHANGED", "UNCHANGED", "UPDATED"]),
+                 "the rows of ONE run: 2 REGISTERED + 1 ACTIVATED, or 2 UNCHANGED + 1 ACTIVATED/UPDATED", outcomes)
+        conn_rows = rows_of(rows, "main-db", "CONNECTION")
+        s.expect(len(conn_rows) == 1 and conn_rows[0]["outcome"] in ("ACTIVATED", "UPDATED"), "1 Connection main-db",
+                 conn_rows)
+        r = ctx.http.get("/api/v1/services")
+        codes = sorted((x["serviceCode"], x["versionNumber"]) for x in (r.json or []))
+        s.expect(codes == sorted([(rcode(ctx, "svc-one", "i"), 1), (rcode(ctx, "svc-two", "i"), 1)]),
+                 "API-REG-001 returns the 2 services, each version 1", codes)
+        text = (fx.APP_LOG.read_text(errors="replace") if fx.APP_LOG.exists() else "") + \
+               (log_b.read_text(errors="replace") if log_b and log_b.exists() else "")
+        bad = [l for l in text.splitlines() if "ORA-00001" in l or "unique constraint" in l.lower()
+               or "ConstraintViolation" in l or "DataIntegrityViolation" in l]
+        s.expect(not bad, "neither instance logs a constraint violation", bad[:3])
+        s.expect("REG load run completed" in text, "a load run completed", "")
+    finally:
+        if proc and proc.poll() is None:
+            proc.terminate()
+            try:
+                proc.wait(30)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+
+
+# --------------------------------------------------------------------------------- reg-activation
+@scenario("reg-activation", "Changed connection settings update the connection, not the versions", ["TC-REG-052"])
+def reg_connection_updated(ctx, s):
+    reg_run(ctx, s, "A1")
+    rows = reg_run(ctx, s, "A2")
+    expect_one(s, rows, "main-db", "UPDATED", kind="CONNECTION", label="endpoint e1 -> e2: main-db UPDATED")
+    expect_one(s, rows, "scholarship-request", "UNCHANGED", label="0 new versions: scholarship-request UNCHANGED")
+    expect_one(s, rows, "vehicle-permit", "UNCHANGED", label="0 new versions: vehicle-permit UNCHANGED")
+    s.expect(not [x for x in rows if x["outcome"] == "REGISTERED"], "no REGISTERED row (0 new versions)")
+    for base in ("scholarship-request", "vehicle-permit"):
+        expect_version(ctx, s, rcode(ctx, base, "a"), 1)
+    rows = reg_run(ctx, s, "A3")
+    expect_one(s, rows, "main-db", "ACTIVATED", kind="CONNECTION",
+               label="same settings (e2) at the next start -> ACTIVATED: the stored endpoint is e2")
+
+
+@scenario("reg-activation", "An empty package directory withdraws nothing while services are available",
+          ["TC-REG-078"])
+def reg_empty_directory(ctx, s):
+    rows = reg_run(ctx, s, "A3")
+    directory = "local/e2e-reg/act-empty"
+    packages = [x for x in rows if x["subjectKind"] != "CONNECTION"]
+    s.expect(len(packages) == 1, "1 package row", packages)
+    expect_one(s, rows, directory, "REJECTED", f"The package directory \"{directory}\" is missing, unreadable or "
+               "empty; no service was loaded or withdrawn.", kind="PACKAGE_DIRECTORY")
+    s.expect(not [x for x in rows if x["outcome"] == "WITHDRAWN"], "no WITHDRAWN row")
+    r = ctx.http.get("/api/v1/services")
+    s.expect(r.status == 200 and len(r.json) == 2 and all(x["available"] for x in r.json),
+             "both Service Packages stay available (API-REG-001 returns 2 rows)", r.short())
+
+
+@scenario("reg-activation", "The limited-to-views declaration is recorded", ["TC-REG-058"])
+def reg_limited_to_views(ctx, s):
+    rows = reg_run(ctx, s, "A3")
+    expect_one(s, rows, "main-db", "ACTIVATED", kind="CONNECTION",
+               label="main-db (limitedToViews = true) unchanged -> ACTIVATED: stored = declared")
+    rows = reg_run(ctx, s, "A4")
+    expect_one(s, rows, "main-db", "UPDATED", kind="CONNECTION",
+               label="only limitedToViews flipped to false -> UPDATED: the stored value was true")
+
+
+@scenario("reg-activation", "An over-length package directory path is shortened on its Load Result row",
+          ["TC-REG-096"])
+def reg_long_directory(ctx, s):
+    rows = reg_run(ctx, s, "A4")
+    s.require(len(LONG_DIR) == 250, "the configured path has 250 characters", len(LONG_DIR))
+    x = expect_one(s, rows, LONG_DIR[:199] + "…", "REJECTED", f"The package directory \"{LONG_DIR}\" is missing, "
+                   "unreadable or empty; no service was loaded or withdrawn.", kind="PACKAGE_DIRECTORY",
+                   label="1 PACKAGE_DIRECTORY row: subjectName = first 199 characters + «…», reason with the full path")
+    s.expect(x and len(x["subjectName"]) == 200 and len(x["reason"]) <= 1000, "200-character subject, reason <= 1000", x)
+    r = ctx.http.get("/api/v1/services")
+    s.expect(r.status == 200 and len(r.json) == 2 and all(x["available"] for x in r.json),
+             "both Service Packages stay available", r.short())
+
+
+@scenario("reg-activation", "A missing package directory withdraws nothing", ["TC-REG-077"])
+def reg_missing_directory(ctx, s):
+    rows = reg_run(ctx, s, "A5")
+    packages = [x for x in rows if x["subjectKind"] != "CONNECTION"]
+    s.expect(len(packages) == 1, "1 package row", packages)
+    expect_one(s, rows, MISSING_DIR, "REJECTED", f"The package directory \"{MISSING_DIR}\" is missing, unreadable or "
+               "empty; no service was loaded or withdrawn.", kind="PACKAGE_DIRECTORY")
+    s.expect(not [x for x in rows if x["outcome"] == "WITHDRAWN"], "no WITHDRAWN row")
+    r = ctx.http.get("/api/v1/services")
+    s.expect(r.status == 200 and sorted(x["serviceCode"] for x in r.json) ==
+             sorted([rcode(ctx, "scholarship-request", "a"), rcode(ctx, "vehicle-permit", "a")])
+             and all(x["available"] for x in r.json), "both stay available (API-REG-001 returns 2 rows)", r.short())
+    for base in ("scholarship-request", "vehicle-permit"):
+        expect_version(ctx, s, rcode(ctx, base, "a"), 1, f"{base}: 0 versions stored (still version 1)")
+
+
+@scenario("reg-activation", "A connection name listed twice is refused", ["TC-REG-049"])
+def reg_duplicate_connection(ctx, s):
+    rows = reg_run(ctx, s, "A6")
+    found = rows_of(rows, "main-db", "CONNECTION")
+    s.expect(len(found) == 2 and all(x["outcome"] == "REJECTED" and x["reason"] ==
+                                     "The connection name \"main-db\" is listed more than once." for x in found),
+             "2 REJECTED CONNECTION rows main-db with the RULE-REG-013 message", found)
+    r = start_refused(ctx, s, rcode(ctx, "scholarship-request", "a"), "CHK-422-CONNECTION-NOT-ACTIVATED",
+                      "0 Connections main-db registered: a Check of a service querying main-db -> 422")
+    s.expect("main-db" in ((r.json or {}).get("detail") or ""), "the refusal names main-db", r.short())
+
+
+@scenario("reg-activation", "A connection not declared read-only is refused", ["TC-REG-057"])
+def reg_not_read_only(ctx, s):
+    rows = reg_run(ctx, s, "A7")
+    expect_one(s, rows, "main-db", "REJECTED", "The connection \"main-db\" must use a read-only database user.",
+               kind="CONNECTION")
+    r = start_refused(ctx, s, rcode(ctx, "scholarship-request", "a"), "CHK-422-CONNECTION-NOT-ACTIVATED",
+                      "main-db is not registered: a Check of a service querying main-db -> 422")
+    s.expect("main-db" in ((r.json or {}).get("detail") or ""), "the refusal names main-db", r.short())
+
+
+# ----------------------------------------------------------------------------------- reg-versions
+@scenario("reg-versions", "Every version carries its version number", ["TC-REG-020"])
+def reg_version_number(ctx, s):
+    rows = reg_run(ctx, s, "V1")
+    expect_one(s, rows, "sr", "REGISTERED", versionNumber=3, serviceCode=rcode(ctx, "scholarship-request"))
+    expect_version(ctx, s, rcode(ctx, "scholarship-request"), 3, "API-REG-002: versionNumber 3")
+
+
+@scenario("reg-versions", "A lower, unstored version is rejected", ["TC-REG-023"])
+def reg_older_version(ctx, s):
+    rows = reg_run(ctx, s, "V2")
+    sr = rcode(ctx, "scholarship-request")
+    expect_one(s, rows, "sr", "REJECTED", f"Version 2 of \"{sr}\" is older than the current version 3.")
+    expect_version(ctx, s, sr, 3, "API-REG-002 returns versionNumber 3")
+
+
+@scenario("reg-versions", "The current version is supplied to a Check", ["TC-REG-025"])
+def reg_current_supplied(ctx, s):
+    rows = reg_run(ctx, s, "V2")
+    x = rcode(ctx, "request-versions")
+    expect_one(s, rows, "tc025", "REGISTERED", versionNumber=3, label="version 3 stored beside version 2")
+    body = required_types(ctx, reg_state(ctx)["checks"]["K3"])
+    s.expect(body.get("serviceCode") == x and body.get("versionNumber") == 3
+             and sorted(body.get("requiredDocumentTypes") or []) == ["ID_CARD", "TRANSCRIPT"],
+             "a Check started now runs on version 3 (getCurrentServicePackage supplied versionNumber 3)", body)
+
+
+@scenario("reg-versions", "A present package folder with an unreadable file is rejected and the run continues",
+          ["TC-REG-090"])
+def reg_unreadable_file(ctx, s):
+    rows = reg_run(ctx, s, "V2")
+    expect_one(s, rows, "scholarship-request", "REGISTERED", serviceCode=rcode(ctx, "scholarship-request", "u"))
+    expect_one(s, rows, "vehicle-permit", "REGISTERED", serviceCode=rcode(ctx, "vehicle-permit", "u"))
+    expect_one(s, rows, "demo-service", "REJECTED", "The file \"service.yaml\" of the package folder \"demo-service\" "
+               "cannot be read; check its permissions and restart.")
+    not_stored(ctx, s, "demo-service")
+
+
+@scenario("reg-versions", "A re-activation that turns a blob version's connection into mcp is refused", ["TC-REG-091"])
+def reg_blob_type_change(ctx, s):
+    mt, ar = rcode(ctx, "main-db"), rcode(ctx, "archive-request")
+    rows1 = reg_rows(ctx, s, "V1")
+    expect_one(s, rows1, mt, "ACTIVATED", kind="CONNECTION", label=f"start 1: {mt} (jdbc) ACTIVATED")
+    expect_one(s, rows1, "archive-request", "REGISTERED", versionNumber=1, label="start 1: archive-request v1 (blob) stored")
+    rows = reg_rows(ctx, s, "V2")
+    found = rows_of(rows, mt, "CONNECTION")
+    s.expect(len(found) == 1, f"1 CONNECTION row for {mt}", found)
+    expect_one(s, rows, mt, "REJECTED", f"The connection \"{mt}\" must stay of type jdbc: version 1 of \"{ar}\" reads "
+               "its documents through it.", kind="CONNECTION")
+    expect_version(ctx, s, ar, 1, "the current package of archive-request is version 1 (available)", available=True,
+                   fetchMode="blob")
+    rows = reg_run(ctx, s, "V3")
+    expect_one(s, rows, mt, "ACTIVATED", kind="CONNECTION", label=f"{mt} relisted as jdbc {DB1_JDBC_URL} -> ACTIVATED "
+               "(no change): it kept connectionType jdbc and its endpoint")
+
+
+@scenario("reg-versions", "Same version number with changed content is rejected (never edited in place)",
+          ["TC-REG-022"])
+def reg_edited_in_place(ctx, s):
+    e = rcode(ctx, "edited-request")
+    rows = reg_rows(ctx, s, "V2")
+    expect_one(s, rows, "tc022", "REJECTED", f"Version 3 of \"{e}\" already exists with different content; publish the "
+               "change as a new version.")
+    expect_version(ctx, s, e, 3, "version 3 keeps its stored content (required TRANSCRIPT only)",
+                   requiredDocumentTypes=["TRANSCRIPT"])
+    rows = reg_run(ctx, s, "V3")
+    expect_one(s, rows, "tc022", "UNCHANGED", label="the original content again -> UNCHANGED: version 3 kept contentHash h1")
+
+
+@scenario("reg-versions", "A higher version becomes current; the earlier stays stored", ["TC-REG-021"])
+def reg_higher_version(ctx, s):
+    x = rcode(ctx, "request-versions")
+    rows = reg_run(ctx, s, "V3")
+    expect_one(s, rows, "tc025", "REGISTERED", versionNumber=4)
+    expect_version(ctx, s, x, 4, "API-REG-002 -> versionNumber 4", requiredDocumentTypes=["ID_CARD"])
+    body = required_types(ctx, reg_state(ctx)["checks"]["K3"])
+    s.expect(body.get("versionNumber") == 3 and sorted(body.get("requiredDocumentTypes") or []) == ["ID_CARD", "TRANSCRIPT"],
+             "version 3 stays stored and resolvable (getServicePackageVersion of a Check pinned to 3)", body)
+
+
+@scenario("reg-versions", "Two folders declaring one service code are both rejected", ["TC-REG-004"])
+def reg_two_folders_one_code(ctx, s):
+    sr = rcode(ctx, "scholarship-request")
+    rows = reg_run(ctx, s, "V3")
+    reason = f"The service code \"{sr}\" is declared by more than one package folder; keep one folder per service."
+    found = [x for x in rows if x["subjectName"] in ("a", "b") and x["outcome"] == "REJECTED" and x["reason"] == reason]
+    s.expect(len(found) == 2, "2 REJECTED rows (subjects a and b) with the RULE-REG-002 message", rows_of(rows, "a") + rows_of(rows, "b"))
+    expect_version(ctx, s, sr, 3, "API-REG-002 returns versionNumber 3 (version 3 stays current)")
+
+
+@scenario("reg-versions", "A package file that changes while it is read is rejected", ["TC-REG-081"])
+def reg_changed_during_read(ctx, s):
+    rows = reg_run(ctx, s, "V4")
+    expect_one(s, rows, "scholarship-request", "REJECTED", "The package folder \"scholarship-request\" changed while it "
+               "was being read; publish it again and restart.")
+    expect_version(ctx, s, rcode(ctx, "scholarship-request"), 3, "no version 4 stored (API-REG-002 -> 3)")
+
+
+@scenario("reg-versions", "A removed connection is not re-registered as mcp while a blob version reads through it",
+          ["TC-REG-092"])
+def reg_removed_blob_connection(ctx, s):
+    mt, ar = rcode(ctx, "main-db"), rcode(ctx, "archive-request")
+    rows4 = reg_rows(ctx, s, "V4")
+    expect_one(s, rows4, mt, "REMOVED", kind="CONNECTION", label=f"{mt} removed at the earlier start")
+    rows = reg_run(ctx, s, "V5")
+    found = rows_of(rows, mt, "CONNECTION")
+    s.expect(len(found) == 1, f"1 CONNECTION row for {mt}", found)
+    expect_one(s, rows, mt, "REJECTED", f"The connection \"{mt}\" must stay of type jdbc: version 1 of \"{ar}\" reads "
+               "its documents through it.", kind="CONNECTION")
+    r = start_refused(ctx, s, ar, "CHK-422-CONNECTION-NOT-ACTIVATED",
+                      f"no Connection {mt} registered: getConnection fails -> start 422 CHK-422-CONNECTION-NOT-ACTIVATED")
+    s.expect(mt in ((r.json or {}).get("detail") or ""), f"the refusal names {mt}", r.short())
+
+
+# ---------------------------------------------------------------------------------- reg-inprocess
+@scenario("reg-inprocess", "No package is supplied for an unknown service", ["TC-REG-013"])
+def reg_unknown_service(ctx, s):
+    r = ctx.http.get("/api/v1/services/unknown-service")
+    s.status_code(r, 404, "REG-404-SERVICE-NOT-FOUND", "the registry holds no unknown-service")
+    s.expect((r.json or {}).get("detail") == "The service \"unknown-service\" is not available.",
+             "the RULE-REG-016 message (REG-404-SERVICE-NOT-FOUND, the code of the in-process refusal)", r.short())
+    start_refused(ctx, s, "unknown-service", "CHK-422-SERVICE-NOT-AVAILABLE",
+                  "a Check of unknown-service receives no package -> 422 CHK-422-SERVICE-NOT-AVAILABLE")
+
+
+@scenario("reg-inprocess", "The registry exposes read operations only", ["TC-REG-018"])
+def reg_read_only(ctx, s):
+    spec = (fx.REPO / "governance/shared/backend/modules/REG/packages/api-spec-reg.yaml").read_text()
+    import re
+    ops = re.findall(r"^    (get|put|post|patch|delete|head|options|trace):", spec, re.M)
+    s.expect(ops == ["get", "get", "get"], "api-spec-reg.yaml lists 3 operations, all GET", ops)
+    before = (ctx.http.get("/api/v1/services").raw, ctx.http.get("/api/v1/load-results").raw)
+    for path in ("/api/v1/services", "/api/v1/services/demo-manual", "/api/v1/load-results"):
+        for method in ("POST", "PUT", "PATCH", "DELETE"):
+            r = ctx.http.request(method, path, body={})
+            s.expect(400 <= r.status < 500, f"{method} {path} refused (4xx)", r.short())
+    after = (ctx.http.get("/api/v1/services").raw, ctx.http.get("/api/v1/load-results").raw)
+    s.expect(before == after, "no change to the registry (list and load report identical)")
+
+
+@scenario("reg-inprocess", "An instance that cannot take the load lock serves the stored registry", ["TC-REG-080"])
+def reg_lock_not_granted(ctx, s):
+    sr = rcode(ctx, "scholarship-request")
+    st = reg_state(ctx)
+    try:
+        reg_run(ctx, s, "I080")
+        proc, locked_at = st["procs"]["lock"]
+        s.expect(time.time() - locked_at >= 30, "the app came up after the 30 s lock timeout",
+                 round(time.time() - locked_at, 1))
+        s.expect("REG start-up load run skipped" in log_since(0), "the app logged: load run skipped, registry served as stored")
+        expect_version(ctx, s, sr, 3, "the folder's version 4 was not loaded (API-REG-002 -> 3)")
+        check_id = start(ctx, s, sr, ctx.request_number("REG-LOCK"), "AWAITING_DOCUMENTS")
+        body = required_types(ctx, check_id)
+        s.expect(body.get("versionNumber") == 3, "getCurrentServicePackage supplied versionNumber 3", body)
+        out = proc.stdout.read()
+        proc.wait(30)
+        s.expect("RELEASED" in (out or ""), "the other session released the lock", (out or "")[-200:])
+        rows = load_rows(ctx, s)
+        prev = st["checks"]["I080-prev"]
+        s.expect(sorted(x["loadResultId"] for x in rows) == sorted(x["loadResultId"] for x in prev),
+                 "0 Load Result rows written: API-REG-003 still returns the previous run's rows",
+                 {"now": len(rows), "before": len(prev)})
+    finally:
+        proc = st["procs"].get("lock", (None,))[0]
+        if proc and proc.poll() is None:
+            proc.kill()
+
+
+def reg_partial_pinned(ctx, s):
+    """Green partial evidence for TC-REG-026 / TC-REG-089: a Check pinned to version 2 still resolves version 2's
+    required document types through INT (API-INT-008 -> getServicePackageVersion) after version 3 became current."""
+    if "V2" not in reg_state(ctx)["done"]:
+        reg_run(ctx, s, "V2")
+    body = required_types(ctx, reg_state(ctx)["checks"]["K2"])
+    s.expect(body.get("versionNumber") == 2 and body.get("requiredDocumentTypes") == ["TRANSCRIPT"],
+             "partial: the pinned version 2 resolves (versionNumber 2, its required types) after version 3 became current",
+             body)
+
+
+NOT_EXERCISABLE = {
+    "TC-REG-002": ("Version stored as two separate parts",
+                   "serviceKnowledge and serviceDefinition of a stored version are returned only in-process "
+                   "(getServicePackageVersion); no HTTP operation returns either text (API-REG-002 is a summary), and "
+                   "the only consumer (CHK's comparison prompt) needs a model call"),
+    "TC-REG-026": ("Any stored version resolves",
+                   "API-INT-008 (the only public read of a pinned version) exposes versionNumber and "
+                   "requiredDocumentTypes only; serviceKnowledge, serviceDefinition and queries of version 2 are "
+                   "in-process only. Partial evidence asserted green in this scenario"),
+    "TC-REG-030": ("Only the queries of the service definition are supplied, unaltered",
+                   "the supplied queries (sqlText, connectionName) are read in-process by CHK's pipeline, which runs "
+                   "only for a confirmed Check and ends in a comparison-model call; no API returns them"),
+    "TC-REG-044": ("An enabled approval API definition is recorded",
+                   "the approvalApi text reaches only the Employee Decision path (ApprovalApiRegistry), exercised by "
+                   "an APPROVED decision on a COMPLETED Check — a comparison-model call; API-REG-002 exposes "
+                   "approvalEnabled only"),
+    "TC-REG-046": ("The approval API definition reaches only the Employee Decision path",
+                   "the supplied package and getApprovalApi are in-process values; the Employee Decision path needs "
+                   "a COMPLETED Check (a comparison-model call)"),
+    "TC-REG-047": ("Disabled approval is reported to the Employee Decision path",
+                   "getApprovalApi is reached only by a decision on a COMPLETED Check (a comparison-model call)"),
+    "TC-REG-050": ("A connection is supplied by name",
+                   "getConnection's settings (type, endpoint, queryTool, dialect, credentialReference) are in-process "
+                   "only; no HTTP operation reads a Connection"),
+    "TC-REG-056": ("Only the credential reference is stored",
+                   "needs a read of every stored REG_CONNECTION field; the runner works only through the HTTP API and "
+                   "no API returns a Connection"),
+    "TC-REG-059": ("The scholarship-request pilot package loads",
+                   "MISSING_IMPLEMENTATION: the delivered pilot package folder scholarship-request (SVC-API step 6, "
+                   "REQ-REG-057/058) is not in this repository; authoring it needs the host's real policy text "
+                   "(POL-REG-014) and host query/columns, which must not be invented"),
+    "TC-REG-061": ("No request data is stored in the registry",
+                   "needs a read of every stored field of the REG tables after 100 Checks; the runner works only "
+                   "through the HTTP API (no direct DB access)"),
+    "TC-REG-062": ("Supplied package content is read-only",
+                   "immutability of the in-process value objects handed to a Check; nothing an HTTP client sends can "
+                   "attempt to change a supplied query"),
+    "TC-REG-089": ("A Check's pinned version is supplied after a newer version became current",
+                   "fetchMode and the document-source fields of a pinned version are read only in-process by DOC's "
+                   "fetch inside a RUNNING Check (a comparison-model call), and start 2 (a restart) ends that Check "
+                   "INTERRUPTED before any fetch; API-INT-008 exposes versionNumber + requiredDocumentTypes only. "
+                   "Partial evidence asserted green in this scenario"),
+}
+
+
+def not_exercisable(tc, title, reason):
+    @scenario("reg-inprocess", title, [tc])
+    def case(ctx, s):
+        if tc in ("TC-REG-026", "TC-REG-089"):
+            reg_partial_pinned(ctx, s)
+        raise Skip("NOT-EXERCISABLE", reason)
+    return case
+
+
+for _tc, (_title, _reason) in NOT_EXERCISABLE.items():
+    not_exercisable(_tc, _title, _reason)
+
+
 BASE_GROUPS = ["registry", "manual", "image", "path", "blob", "decisions", "approval", "refusals", "lifecycle"]
-RESTART_GROUPS = ["interrupted", "expiry", "notpermitted", "limits", "withdrawn", "connection", "race"]
+RESTART_GROUPS = ["interrupted", "expiry", "notpermitted", "limits", "withdrawn", "connection", "race"] + REG_GROUPS
 GROUPS = BASE_GROUPS + RESTART_GROUPS
 
 
@@ -1343,6 +2494,8 @@ def run_one(ctx, sc, fn):
     t0 = time.time()
     print(f"[{s.group}] {s.name} ...", flush=True)
     try:
+        if s.group not in REG_GROUPS:
+            reg_state(ctx)["current"] = None      # another group may change the mode: the next REG batch reruns
         if s.group in BASE_GROUPS and ctx.mode_touched:
             use_mode(ctx, s)          # back to the normal mode (no restart when already there)
         fn(ctx, s)
@@ -1369,8 +2522,10 @@ def run_one(ctx, sc, fn):
 def write_outputs(ctx, results, prefix):
     groups = {}
     for s in results:
-        g = groups.setdefault(s.group, {"passed": 0, "failed": 0, "skipped": 0, "ambiguous": 0, "error": 0})
-        key = {"PASSED": "passed", "FAILED": "failed", "ERROR": "error", "AMBIGUOUS": "ambiguous"}.get(s.status, "skipped")
+        g = groups.setdefault(s.group, {"passed": 0, "failed": 0, "skipped": 0, "ambiguous": 0, "notExercisable": 0,
+                                        "error": 0})
+        key = {"PASSED": "passed", "FAILED": "failed", "ERROR": "error", "AMBIGUOUS": "ambiguous",
+               "NOT-EXERCISABLE": "notExercisable"}.get(s.status, "skipped")
         g[key] += 1
     data = {
         "runId": ctx.run_id, "baseUrl": ctx.args.base_url, "date": dt.date.today().isoformat(),
@@ -1391,9 +2546,10 @@ def write_outputs(ctx, results, prefix):
              f"Base URL `{ctx.args.base_url}` · comparison model `{ctx.comparison_model}` · model calls: "
              f"{ctx.comparison_calls} comparison, {ctx.reading_calls} reading"
              + (f" · quota hit: {ctx.quota_hit}" if ctx.quota_hit else ""), "",
-             "| Group | Passed | Failed | Skipped | Ambiguous | Error |", "|---|---|---|---|---|---|"]
+             "| Group | Passed | Failed | Skipped | Ambiguous | Not exercisable | Error |", "|---|---|---|---|---|---|---|"]
     for g, c in groups.items():
-        lines.append(f"| {g} | {c['passed']} | {c['failed']} | {c['skipped']} | {c['ambiguous']} | {c['error']} |")
+        lines.append(f"| {g} | {c['passed']} | {c['failed']} | {c['skipped']} | {c['ambiguous']} | {c['notExercisable']} "
+                     f"| {c['error']} |")
     lines += ["", "## Scenarios", ""]
     for s in results:
         lines.append(f"- **{s.status}** [{s.group}] {s.name}" + (f" — {s.reason}" if s.reason else "")

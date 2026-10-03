@@ -1,0 +1,2397 @@
+{
+  "runId": "20261003T102414Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 0,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "registry": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "reg-rules": {
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "reg-activation": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "reg-versions": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "reg-inprocess": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 12,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "registry",
+      "name": "The four fixture services are listed with their fetch modes, without SQL or connection",
+      "tcs": [
+        "TC-REG-014",
+        "TC-REG-005",
+        "TC-REG-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-manual: available, fetch manual, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-approval: available, fetch manual, approval True",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path: available, fetch path, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-blob: available, fetch blob, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path requires TRANSCRIPT and ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no SQL / connection detail in the list",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "The load report shows both connections ACTIVATED and every fixture package loaded",
+      "tcs": [
+        "TC-REG-008",
+        "TC-REG-051",
+        "TC-REG-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/load-results -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "rows of the latest load run only",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-oracle ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-jdbc ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-manual REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-approval REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-path REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-blob REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no REJECTED row",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "An unknown service code is 404 REG-404-SERVICE-NOT-FOUND",
+      "tcs": [
+        "TC-REG-016"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/no-such-service-e2e -> 404 REG-404-SERVICE-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "A service code is read trimmed and case-insensitively",
+      "tcs": [
+        "TC-REG-075",
+        "TC-REG-073"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/DEMO-Manual -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upper/mixed case answers demo-manual",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/%20%20Demo-Path%20 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "space-padded code answers demo-path",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Folder with only a service definition is rejected",
+      "tcs": [
+        "TC-REG-003"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 6.8,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'demo-service' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/demo-service -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Empty service knowledge is rejected",
+      "tcs": [
+        "TC-REG-029"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc029' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A query using another parameter than the declared input is rejected",
+      "tcs": [
+        "TC-REG-033"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc033' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A query using a substitution marker is rejected",
+      "tcs": [
+        "TC-REG-034"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc034' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A query that is not a single SELECT is rejected",
+      "tcs": [
+        "TC-REG-035"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc035' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A service definition declaring a check limit is rejected",
+      "tcs": [
+        "TC-REG-036"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc036' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Two queries with one name are rejected",
+      "tcs": [
+        "TC-REG-037"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc037' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "An unknown fetch mode is rejected",
+      "tcs": [
+        "TC-REG-040"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc040' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Fetch mode path without a path column is rejected",
+      "tcs": [
+        "TC-REG-041"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc041' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Blob documents over an mcp connection are rejected",
+      "tcs": [
+        "TC-REG-042"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc042' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A service definition declaring a file location is rejected",
+      "tcs": [
+        "TC-REG-043"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc043' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/demo-service -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Enabled approval without a definition is rejected",
+      "tcs": [
+        "TC-REG-045"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc045' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A required document type declared twice is rejected",
+      "tcs": [
+        "TC-REG-072"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc072' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/demo-service -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Fetch mode path without a type column is rejected",
+      "tcs": [
+        "TC-REG-083"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc083' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A document source naming an undeclared query is rejected",
+      "tcs": [
+        "TC-REG-084"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc084' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A timeout in a service definition is rejected",
+      "tcs": [
+        "TC-REG-086"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc086' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A maximum file size in a service definition is rejected",
+      "tcs": [
+        "TC-REG-087"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc087' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "An invalid service code is rejected (sub-cases a-g, one folder each)",
+      "tcs": [
+        "TC-REG-076"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "(a) 'scholarship request!' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(a) no Service Package for 'scholarship request!'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(b) 'a_b' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(b) no Service Package for 'a_b'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(c) '-a' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(c) no Service Package for '-a'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(d) 'a-' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(d) no Service Package for 'a-'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(e) 'a--b' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(e) no Service Package for 'a--b'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(f) 'aaaaaaaaaaaaaaaaaaaa' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(f) no Service Package for 'aaaaaaaaaaaaaaaaaaaa'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(g) '' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "(g2) '   ' REJECTED with the RULE-REG-022 message",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "An over-length invalid service code is shortened on its Load Result row",
+      "tcs": [
+        "TC-REG-097"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'long-code' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "reason at most 1000 characters",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "row serviceCode = 99 \u00d7 a + \u00ab\u2026\u00bb (100 characters)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Service Package created",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Two folders whose codes differ only in case are both rejected",
+      "tcs": [
+        "TC-REG-074"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "folder a (Scholarship-Request) REJECTED, RULE-REG-002",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "folder b (scholarship-request) REJECTED, RULE-REG-002",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A failing pilot package is reported and never supplied",
+      "tcs": [
+        "TC-REG-063"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'scholarship-request' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no version of scholarship-request is stored",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the RULE-REG-016 message (REG-404-SERVICE-NOT-FOUND, the code of the in-process refusal)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a Check of scholarship-request receives no package -> 422 CHK-422-SERVICE-NOT-AVAILABLE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check created",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A folder outside the package directory is never loaded (sibling dir, symlink inside)",
+      "tcs": [
+        "TC-REG-017"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "no Load Result row for the symbolic link pointing outside",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Load Result row for the sibling folder",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no row declares outside-service",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no version stored from the outside folder",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Activation refusals: unknown type, over-length name and endpoint; main-db ACTIVATED",
+      "tcs": [
+        "TC-REG-054",
+        "TC-REG-094",
+        "TC-REG-095"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'ftp-db' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "main-db ACTIVATED in the same run",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "101-character connection REJECTED; subjectName is the full name",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'blob-db' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "ftp-db not registered",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "cccccccccccc not registered",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "blob-db not registered",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Failing and succeeding items in one load run each get their own outcome",
+      "tcs": [
+        "TC-REG-085"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one load run records exactly 4 rows",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "every row carries the one loadRunAt of this run",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'main-db' ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'bad-db' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'svc-ok' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'svc-fax' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "svc-ok readable with API-REG-002",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Earlier load results are removed at a new run",
+      "tcs": [
+        "TC-REG-009"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.5,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the previous load run left 4 rows",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the load report holds exactly 3 rows (2 folders, 1 connection)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "every row carries the one loadRunAt of this run",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "all with the loadRunAt of the new run",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no earlier row survives",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "One connection defined once and shared by two packages",
+      "tcs": [
+        "TC-REG-048"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 37.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 CONNECTION row main-db",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'main-db' ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc048-one' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc048-two' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "shared-one-t1003102414 stored",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "shared-two-t1003102414 stored",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "One fetch mode and the required document types recorded per version",
+      "tcs": [
+        "TC-REG-038",
+        "TC-REG-039"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc038' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002: fetchMode path",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002: requiredDocumentTypes TRANSCRIPT and ID_CARD (2 rows; the API document fixes no order)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A folder whose name exceeds 200 characters is rejected; the run continues",
+      "tcs": [
+        "TC-REG-093"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "3 SERVICE_PACKAGE rows for the TC's folders",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc093-one' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc093-two' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the 201-character folder REJECTED (RULE-REG-027); subjectName = 199 \u00d7 p + \u00ab\u2026\u00bb",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "subjectName has exactly 200 characters",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/long-folder-service -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A 100-character service code with single hyphens is accepted (boundary pass)",
+      "tcs": [
+        "TC-REG-099"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the fixture code has 100 characters",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc099' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the 100-character serviceCode, available = true",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Fetch mode blob without a content column is rejected",
+      "tcs": [
+        "TC-REG-082"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "jdbc connection docs-jdbc registered",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc082' REJECTED with the exact reason",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A package folder holding another file is rejected",
+      "tcs": [
+        "TC-REG-064"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 36.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'demo-service' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/demo-service -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "A valid folder is rejected as a duplicate even when its twin fails another rule",
+      "tcs": [
+        "TC-REG-098"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "2 SERVICE_PACKAGE rows (a, b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'a' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'b' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/vehicle-permit -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-rules",
+      "name": "Two instances starting together produce one complete load report",
+      "tcs": [
+        "TC-REG-079"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 38.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both instances serve the same load report",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "exactly 3 rows",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "every row carries the one loadRunAt of this run",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the rows of ONE run: 2 REGISTERED + 1 ACTIVATED, or 2 UNCHANGED + 1 ACTIVATED/UPDATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 Connection main-db",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-001 returns the 2 services, each version 1",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "neither instance logs a constraint violation",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a load run completed",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "Changed connection settings update the connection, not the versions",
+      "tcs": [
+        "TC-REG-052"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 107.7,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "endpoint e1 -> e2: main-db UPDATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 new versions: scholarship-request UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 new versions: vehicle-permit UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no REGISTERED row (0 new versions)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/scholarship-request-t1003102414a -> versionNumber 1",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/vehicle-permit-t1003102414a -> versionNumber 1",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "same settings (e2) at the next start -> ACTIVATED: the stored endpoint is e2",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "An empty package directory withdraws nothing while services are available",
+      "tcs": [
+        "TC-REG-078"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "1 package row",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one PACKAGE_DIRECTORY row 'local/e2e-reg/act-empty' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no WITHDRAWN row",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both Service Packages stay available (API-REG-001 returns 2 rows)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "The limited-to-views declaration is recorded",
+      "tcs": [
+        "TC-REG-058"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "main-db (limitedToViews = true) unchanged -> ACTIVATED: stored = declared",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "only limitedToViews flipped to false -> UPDATED: the stored value was true",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "An over-length package directory path is shortened on its Load Result row",
+      "tcs": [
+        "TC-REG-096"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the configured path has 250 characters",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 PACKAGE_DIRECTORY row: subjectName = first 199 characters + \u00ab\u2026\u00bb, reason with the full path",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "200-character subject, reason <= 1000",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both Service Packages stay available",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "A missing package directory withdraws nothing",
+      "tcs": [
+        "TC-REG-077"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.7,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 package row",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one PACKAGE_DIRECTORY row '/srv/aias/packages' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no WITHDRAWN row",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both stay available (API-REG-001 returns 2 rows)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "scholarship-request: 0 versions stored (still version 1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "vehicle-permit: 0 versions stored (still version 1)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "A connection name listed twice is refused",
+      "tcs": [
+        "TC-REG-049"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 REJECTED CONNECTION rows main-db with the RULE-REG-013 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 Connections main-db registered: a Check of a service querying main-db -> 422",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check created",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the refusal names main-db",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-activation",
+      "name": "A connection not declared read-only is refused",
+      "tcs": [
+        "TC-REG-057"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'main-db' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "main-db is not registered: a Check of a service querying main-db -> 422",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check created",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the refusal names main-db",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "Every version carries its version number",
+      "tcs": [
+        "TC-REG-020"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.7,
+      "checksCreated": [
+        210
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start request-versions-t1003102414 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'sr' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002: versionNumber 3",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "A lower, unstored version is rejected",
+      "tcs": [
+        "TC-REG-023"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.7,
+      "checksCreated": [
+        211
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start request-versions-t1003102414 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'sr' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002 returns versionNumber 3",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "The current version is supplied to a Check",
+      "tcs": [
+        "TC-REG-025"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "version 3 stored beside version 2",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a Check started now runs on version 3 (getCurrentServicePackage supplied versionNumber 3)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "A present package folder with an unreadable file is rejected and the run continues",
+      "tcs": [
+        "TC-REG-090"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'scholarship-request' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'vehicle-permit' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'demo-service' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /services/demo-service -> 404 (no version stored)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "A re-activation that turns a blob version's connection into mcp is refused",
+      "tcs": [
+        "TC-REG-091"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.5,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start 1: main-db-t1003102414 (jdbc) ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start 1: archive-request v1 (blob) stored",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 CONNECTION row for main-db-t1003102414",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'main-db-t1003102414' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the current package of archive-request is version 1 (available)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "main-db-t1003102414 relisted as jdbc jdbc:oracle:thin:@db1:1521/APP -> ACTIVATED (no change): it kept connectionType jdbc and its endpoint",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "Same version number with changed content is rejected (never edited in place)",
+      "tcs": [
+        "TC-REG-022"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc022' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "version 3 keeps its stored content (required TRANSCRIPT only)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the original content again -> UNCHANGED: version 3 kept contentHash h1",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "A higher version becomes current; the earlier stays stored",
+      "tcs": [
+        "TC-REG-021"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'tc025' REGISTERED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002 -> versionNumber 4",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "version 3 stays stored and resolvable (getServicePackageVersion of a Check pinned to 3)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "Two folders declaring one service code are both rejected",
+      "tcs": [
+        "TC-REG-004"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "2 REJECTED rows (subjects a and b) with the RULE-REG-002 message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "API-REG-002 returns versionNumber 3 (version 3 stays current)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "A package file that changes while it is read is rejected",
+      "tcs": [
+        "TC-REG-081"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 37.7,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one SERVICE_PACKAGE row 'scholarship-request' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no version 4 stored (API-REG-002 -> 3)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-versions",
+      "name": "A removed connection is not re-registered as mcp while a blob version reads through it",
+      "tcs": [
+        "TC-REG-092"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.7,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "main-db-t1003102414 removed at the earlier start",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 CONNECTION row for main-db-t1003102414",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one CONNECTION row 'main-db-t1003102414' REJECTED with the exact reason",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Connection main-db-t1003102414 registered: getConnection fails -> start 422 CHK-422-CONNECTION-NOT-ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check created",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the refusal names main-db-t1003102414",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "No package is supplied for an unknown service",
+      "tcs": [
+        "TC-REG-013"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the registry holds no unknown-service",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the RULE-REG-016 message (REG-404-SERVICE-NOT-FOUND, the code of the in-process refusal)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a Check of unknown-service receives no package -> 422 CHK-422-SERVICE-NOT-AVAILABLE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check created",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "The registry exposes read operations only",
+      "tcs": [
+        "TC-REG-018"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "api-spec-reg.yaml lists 3 operations, all GET",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/services refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PUT /api/v1/services refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PATCH /api/v1/services refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DELETE /api/v1/services refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/services/demo-manual refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PUT /api/v1/services/demo-manual refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PATCH /api/v1/services/demo-manual refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DELETE /api/v1/services/demo-manual refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/load-results refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PUT /api/v1/load-results refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "PATCH /api/v1/load-results refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DELETE /api/v1/load-results refused (4xx)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no change to the registry (list and load report identical)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "An instance that cannot take the load lock serves the stored registry",
+      "tcs": [
+        "TC-REG-080"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 120.1,
+      "checksCreated": [
+        212
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "another session holds LOCK TABLE REG_LOAD_RESULT IN EXCLUSIVE MODE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the app came up after the 30 s lock timeout",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the app logged: load run skipped, registry served as stored",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the folder's version 4 was not loaded (API-REG-002 -> 3)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start scholarship-request-t1003102414 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "getCurrentServicePackage supplied versionNumber 3",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the other session released the lock",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 Load Result rows written: API-REG-003 still returns the previous run's rows",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "Version stored as two separate parts",
+      "tcs": [
+        "TC-REG-002"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "serviceKnowledge and serviceDefinition of a stored version are returned only in-process (getServicePackageVersion); no HTTP operation returns either text (API-REG-002 is a summary), and the only consumer (CHK's comparison prompt) needs a model call",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "Any stored version resolves",
+      "tcs": [
+        "TC-REG-026"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "API-INT-008 (the only public read of a pinned version) exposes versionNumber and requiredDocumentTypes only; serviceKnowledge, serviceDefinition and queries of version 2 are in-process only. Partial evidence asserted green in this scenario",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "partial: the pinned version 2 resolves (versionNumber 2, its required types) after version 3 became current",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "Only the queries of the service definition are supplied, unaltered",
+      "tcs": [
+        "TC-REG-030"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "the supplied queries (sqlText, connectionName) are read in-process by CHK's pipeline, which runs only for a confirmed Check and ends in a comparison-model call; no API returns them",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "An enabled approval API definition is recorded",
+      "tcs": [
+        "TC-REG-044"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "the approvalApi text reaches only the Employee Decision path (ApprovalApiRegistry), exercised by an APPROVED decision on a COMPLETED Check \u2014 a comparison-model call; API-REG-002 exposes approvalEnabled only",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "The approval API definition reaches only the Employee Decision path",
+      "tcs": [
+        "TC-REG-046"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "the supplied package and getApprovalApi are in-process values; the Employee Decision path needs a COMPLETED Check (a comparison-model call)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "Disabled approval is reported to the Employee Decision path",
+      "tcs": [
+        "TC-REG-047"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "getApprovalApi is reached only by a decision on a COMPLETED Check (a comparison-model call)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "A connection is supplied by name",
+      "tcs": [
+        "TC-REG-050"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "getConnection's settings (type, endpoint, queryTool, dialect, credentialReference) are in-process only; no HTTP operation reads a Connection",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "Only the credential reference is stored",
+      "tcs": [
+        "TC-REG-056"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs a read of every stored REG_CONNECTION field; the runner works only through the HTTP API and no API returns a Connection",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "The scholarship-request pilot package loads",
+      "tcs": [
+        "TC-REG-059"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "MISSING_IMPLEMENTATION: the delivered pilot package folder scholarship-request (SVC-API step 6, REQ-REG-057/058) is not in this repository; authoring it needs the host's real policy text (POL-REG-014) and host query/columns, which must not be invented",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "No request data is stored in the registry",
+      "tcs": [
+        "TC-REG-061"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs a read of every stored field of the REG tables after 100 Checks; the runner works only through the HTTP API (no direct DB access)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "Supplied package content is read-only",
+      "tcs": [
+        "TC-REG-062"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "immutability of the in-process value objects handed to a Check; nothing an HTTP client sends can attempt to change a supplied query",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "reg-inprocess",
+      "name": "A Check's pinned version is supplied after a newer version became current",
+      "tcs": [
+        "TC-REG-089"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "fetchMode and the document-source fields of a pinned version are read only in-process by DOC's fetch inside a RUNNING Check (a comparison-model call), and start 2 (a restart) ends that Check INTERRUPTED before any fetch; API-INT-008 exposes versionNumber + requiredDocumentTypes only. Partial evidence asserted green in this scenario",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "partial: the pinned version 2 resolves (versionNumber 2, its required types) after version 3 became current",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "Folder with only a service definition is rejected",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/rules-1, aias.documents.data-class=REAL, connections=['main-db', 'ftp-db', 'ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'blob-db']]",
+      "at": "2026-10-03T14:24:21"
+    },
+    {
+      "scenario": "Failing and succeeding items in one load run each get their own outcome",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/rules-085, aias.documents.data-class=REAL, connections=['main-db', 'bad-db']]",
+      "at": "2026-10-03T14:24:57"
+    },
+    {
+      "scenario": "Earlier load results are removed at a new run",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/rules-009, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:25:33"
+    },
+    {
+      "scenario": "One connection defined once and shared by two packages",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/rules-2b, aias.documents.data-class=REAL, connections=['main-db', 'docs-jdbc']]",
+      "at": "2026-10-03T14:26:10"
+    },
+    {
+      "scenario": "A package folder holding another file is rejected",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/rules-2a, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:26:47"
+    },
+    {
+      "scenario": "Two instances starting together produce one complete load report",
+      "mode": "two instances (7271 + 7272), dir local/e2e-reg/rules-079",
+      "at": "2026-10-03T14:27:24"
+    },
+    {
+      "scenario": "Changed connection settings update the connection, not the versions",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/act-two, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:28:01"
+    },
+    {
+      "scenario": "Changed connection settings update the connection, not the versions",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/act-two, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:28:37"
+    },
+    {
+      "scenario": "Changed connection settings update the connection, not the versions",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/act-empty, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:29:13"
+    },
+    {
+      "scenario": "The limited-to-views declaration is recorded",
+      "mode": "mode [aias.registry.package-directory=/srv/ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:29:48"
+    },
+    {
+      "scenario": "A missing package directory withdraws nothing",
+      "mode": "mode [aias.registry.package-directory=/srv/aias/packages, aias.documents.data-class=REAL, connections=['aux-db']]",
+      "at": "2026-10-03T14:30:24"
+    },
+    {
+      "scenario": "A connection name listed twice is refused",
+      "mode": "mode [aias.registry.package-directory=/srv/aias/packages, aias.documents.data-class=REAL, connections=['main-db', 'main-db']]",
+      "at": "2026-10-03T14:30:59"
+    },
+    {
+      "scenario": "A connection not declared read-only is refused",
+      "mode": "mode [aias.registry.package-directory=/srv/aias/packages, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:31:35"
+    },
+    {
+      "scenario": "Every version carries its version number",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/versions-1, aias.documents.data-class=REAL, connections=['main-db', 'main-db-t1003102414']]",
+      "at": "2026-10-03T14:32:11"
+    },
+    {
+      "scenario": "A lower, unstored version is rejected",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/versions-2, aias.documents.data-class=REAL, connections=['main-db', 'main-db-t1003102414']]",
+      "at": "2026-10-03T14:32:46"
+    },
+    {
+      "scenario": "A re-activation that turns a blob version's connection into mcp is refused",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/versions-3, aias.documents.data-class=REAL, connections=['main-db', 'main-db-t1003102414']]",
+      "at": "2026-10-03T14:33:22"
+    },
+    {
+      "scenario": "A package file that changes while it is read is rejected",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/versions-4, aias.documents.data-class=REAL, connections=['main-db']]",
+      "at": "2026-10-03T14:34:00"
+    },
+    {
+      "scenario": "A removed connection is not re-registered as mcp while a blob version reads through it",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/versions-5, aias.documents.data-class=REAL, connections=['main-db', 'main-db-t1003102414']]",
+      "at": "2026-10-03T14:34:35"
+    },
+    {
+      "scenario": "An instance that cannot take the load lock serves the stored registry",
+      "mode": "mode [aias.registry.package-directory=local/e2e-reg/inprocess-080, aias.documents.data-class=REAL, aias.registry.load-lock-timeout=PT30S, connections=['main-db']]",
+      "at": "2026-10-03T14:35:42"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T14:37:12"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 210,
+      "serviceCode": "request-versions-t1003102414",
+      "requestNumber": "E2E-20261003T102414Z-REG-V2",
+      "what": "started by 'Every version carries its version number'"
+    },
+    {
+      "checkId": 211,
+      "serviceCode": "request-versions-t1003102414",
+      "requestNumber": "E2E-20261003T102414Z-REG-V3",
+      "what": "started by 'A lower, unstored version is rejected'"
+    },
+    {
+      "checkId": 212,
+      "serviceCode": "scholarship-request-t1003102414",
+      "requestNumber": "E2E-20261003T102414Z-REG-LOCK",
+      "what": "started by 'An instance that cannot take the load lock serves the stored registry'"
+    }
+  ]
+}

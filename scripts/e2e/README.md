@@ -34,8 +34,17 @@ end of the Check (Active Check gone, uploads deleted).
 | `withdrawn` ↻ | 0 | `demo-blob` folder parked → load WITHDRAWN, unlisted, read `available:false`, start 422 `CHK-422-SERVICE-NOT-AVAILABLE`; folder back → available again (UNCHANGED, version kept) |
 | `connection` ↻ | 0 | `demo-noconn` (query over `ghost-db`) REJECTED at load; `demo-conn` registered while `local-extra` is activated, then the connection is dropped → REMOVED, folder REJECTED, service kept, start 422 `CHK-422-CONNECTION-NOT-ACTIVATED`; back to normal → `demo-conn` WITHDRAWN |
 | `race` | 0 | `DOC-409-CHECK-ENDED` through INT (TC-INT-096): reported AMBIGUOUS — not reproducible deterministically through the API (reason in the result) |
+| `reg-rules` ↻ | 0 | REG load-run rules (RULE-REG-001…028) in an ISOLATED package directory `local/e2e-reg/<batch>`: one load run judges ~30 invalid folders (one Load Result row each, the TC's exact English reason), activation refusals (unknown type, over-length name / endpoint), symlink outside the directory; dedicated runs for the whole-run TCs (TC-REG-085 4 rows, TC-REG-009 3 rows after 4); valid / boundary folders; two instances started together on 7271 + 7272 (TC-REG-079) |
+| `reg-activation` ↻ | 0 | connection activation over successive starts: endpoint change UPDATED then ACTIVATED (stored = new value), limited-to-views flip, empty / missing / 250-char package directory (nothing withdrawn, shortened subject), duplicate and not-read-only `main-db` (a Check start proves 0 registered: 422 `CHK-422-CONNECTION-NOT-ACTIVATED`) |
+| `reg-versions` ↻ | 0 | version progression: v2→v3→v4 (a manual Check pinned to each version read through INT API-INT-008), edited-in-place / older version / duplicate code rejected, unreadable file (mode 000), file changing during the read (a FIFO whose mtime moves while it is read), blob connection turned mcp / removed then relisted mcp (RULE-REG-025) |
+| `reg-inprocess` ↻ | 0 | in-process interface through public APIs: unknown service (REG-404 text + CHK-422), write verbs refused, load lock held by another Oracle session (sqlplus in the `erp-oracle` container) → the stored registry is served; the TCs no public API can observe are reported `NOT-EXERCISABLE` with the reason |
 
-↻ = restart group. Completed Checks are shared between groups (one model call each), so the whole run costs
+↻ = restart group. The REG groups make **0 model calls**: they never confirm a Check, start only `manual` Checks
+(or ones expected to be refused 422), and their modes also set `aias.documents.data-class=REAL` (FREE models) as
+defence in depth. A service code a REG TC stores carries the run's tag (`scholarship-request-t1003095850`) because
+the local registry keeps every version forever; codes a TC expects rejected keep the TC's literal value. Batches of a
+REG group run in a fixed order (each one's preconditions are what the earlier ones stored); `--only <reg group>`
+replays whatever earlier batch a scenario needs. Status `NOT-EXERCISABLE` (reason in the result) never counts as passed. Completed Checks are shared between groups (one model call each), so the whole run costs
 **11 comparison calls and 1 reading call** (base groups 7 + `limits` 4). `--only <group>` builds whatever shared
 Check it needs.
 
@@ -68,7 +77,7 @@ python3 scripts/e2e/simulate.py --out governance/project-artifacts/E2E-SIMULATIO
 ```
 
 Exit code 0 when no scenario FAILED or ERRORed. Scenario statuses: `PASSED`, `FAILED`, `ERROR` (runner or
-transport failure), `SKIPPED-QUOTA`, `SKIPPED-MODEL`, `SKIPPED-RATE`, `SKIPPED-BUDGET`, `SKIPPED-PRECONDITION`, `AMBIGUOUS`.
+transport failure), `SKIPPED-QUOTA`, `SKIPPED-MODEL`, `SKIPPED-RATE`, `SKIPPED-BUDGET`, `SKIPPED-PRECONDITION`, `AMBIGUOUS`, `NOT-EXERCISABLE`.
 
 What `setup_fixtures.py` creates (all gitignored):
 

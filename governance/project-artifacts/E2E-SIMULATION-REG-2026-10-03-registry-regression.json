@@ -1,0 +1,191 @@
+{
+  "runId": "20261003T103719Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 0,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "registry": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "registry",
+      "name": "The four fixture services are listed with their fetch modes, without SQL or connection",
+      "tcs": [
+        "TC-REG-014",
+        "TC-REG-005",
+        "TC-REG-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-manual: available, fetch manual, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-approval: available, fetch manual, approval True",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path: available, fetch path, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-blob: available, fetch blob, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path requires TRANSCRIPT and ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no SQL / connection detail in the list",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "The load report shows both connections ACTIVATED and every fixture package loaded",
+      "tcs": [
+        "TC-REG-008",
+        "TC-REG-051",
+        "TC-REG-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/load-results -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "rows of the latest load run only",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-oracle ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-jdbc ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-manual REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-approval REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-path REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-blob REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no REJECTED row",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "An unknown service code is 404 REG-404-SERVICE-NOT-FOUND",
+      "tcs": [
+        "TC-REG-016"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/no-such-service-e2e -> 404 REG-404-SERVICE-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "A service code is read trimmed and case-insensitively",
+      "tcs": [
+        "TC-REG-075",
+        "TC-REG-073"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/DEMO-Manual -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upper/mixed case answers demo-manual",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/%20%20Demo-Path%20 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "space-padded code answers demo-path",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [],
+  "survivingRecords": []
+}
