@@ -1,5 +1,7 @@
 # Reusable Agentic AI Library
 
+> **دليل عربي للمبتدئين:** [docs/PROJECT-GUIDE-AR.md](docs/PROJECT-GUIDE-AR.md) — مكوّنات aias، رحلة الـ Check، Spring AI كما يُستخدم هنا، التشغيل المحلي والإعداد للاستخدام الحقيقي.
+
 A domain-agnostic, reusable Agentic AI foundation built on [Spring AI](https://spring.io/projects/spring-ai),
 designed to be embedded into multiple independent Products.
 
