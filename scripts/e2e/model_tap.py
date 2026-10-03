@@ -9,6 +9,9 @@ document per call, no tool), and the document content handed to the comparison m
 
     python3 scripts/e2e/model_tap.py            # port 7292, upstream https://generativelanguage.googleapis.com
 
+The CHK groups run a second tap (MODEL_TAP_PORT=7294, MODEL_TAP_UPSTREAM=http://127.0.0.1:7293 — the scripted
+model_stub.py — and MODEL_TAP_RECORD=logs/e2e-chk-model-tap.jsonl): the request shape recorded is the app's.
+
 Record: ``logs/e2e-model-tap.jsonl`` (gitignored), one JSON object per call: time, path, model, status,
 elapsed ms, ``tools`` present or not, and the messages with every inline media part reduced to its media
 type and length. Request HEADERS are never recorded (the Authorization header carries the API key) and the
@@ -27,7 +30,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 PORT = int(os.environ.get("MODEL_TAP_PORT", "7292"))
 UPSTREAM = os.environ.get("MODEL_TAP_UPSTREAM", "https://generativelanguage.googleapis.com")
-RECORD = REPO / "logs" / "e2e-model-tap.jsonl"
+RECORD = Path(os.environ.get("MODEL_TAP_RECORD") or REPO / "logs" / "e2e-model-tap.jsonl")
 FORWARDED = ("authorization", "content-type", "accept", "x-goog-api-key", "user-agent")
 LOCK = threading.Lock()
 

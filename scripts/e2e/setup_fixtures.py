@@ -423,7 +423,7 @@ def ensure_stub():
     raise SystemExit("the approval stub did not start")
 
 
-def restart_app(build=True):
+def restart_app(build=True, profiles="local"):
     pid = pid_alive(APP_PID)
     if pid:
         print(f"  stopping app pid {pid}")
@@ -448,7 +448,7 @@ def restart_app(build=True):
     if current.exists():
         current.replace(LOGS / "aias-local-prev.log")
     log = open(current, "w")
-    proc = subprocess.Popen(["java", "-jar", str(JAR.relative_to(REPO)), "--spring.profiles.active=local",
+    proc = subprocess.Popen(["java", "-jar", str(JAR.relative_to(REPO)), f"--spring.profiles.active={profiles}",
                              f"--server.port={APP_PORT}"], cwd=REPO, stdout=log, stderr=subprocess.STDOUT,
                             start_new_session=True)
     APP_PID.write_text(str(proc.pid))

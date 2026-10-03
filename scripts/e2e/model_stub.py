@@ -18,7 +18,8 @@ by the runner) on every call:
               "note": ...}], "error": "provider answered 503"}}
 
 ``hold`` delays the answer (seconds), ``status`` != 200 answers that HTTP status with ``error`` as the
-provider's message. No marker → ``{"findings": []}`` at once.
+provider's message, ``raw`` (CHK groups) answers that text verbatim as the model's message content instead of the
+findings JSON (free text / malformed output). No marker → ``{"findings": []}`` at once.
 
 Record: ``logs/e2e-model-stub.jsonl`` — time, path, model, script id, status, hold, tools present. No header
 (the app sends its configured key) and no message content is recorded.
@@ -102,7 +103,7 @@ class Stub(BaseHTTPRequestHandler):
             self._send(status, {"error": {"message": script.get("error", f"provider answered {status}"),
                                           "code": status, "status": "UNAVAILABLE"}})
             return
-        answer = json.dumps({"findings": script.get("findings", [])})
+        answer = script["raw"] if "raw" in script else json.dumps({"findings": script.get("findings", [])})
         self._send(200, {
             "id": "chatcmpl-e2e-" + uuid.uuid4().hex[:12], "object": "chat.completion", "created": int(time.time()),
             "model": body.get("model") or "e2e-stub",

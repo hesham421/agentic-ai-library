@@ -1,0 +1,149 @@
+{
+  "runId": "20261003T140842Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 0,
+    "reading": 0
+  },
+  "quotaHit": null,
+  "groups": {
+    "chk-pipeline": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "chk-pipeline",
+      "name": "The comparison model is taken from configuration (aias.check.comparison-model.model = 'e2e-cmp-model-b', tier FREE, data class SYNTHETIC): the call is sent to it and the report records it",
+      "tcs": [
+        "TC-CHK-082"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 10.1,
+      "checksCreated": [
+        960
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-m (chk-m-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-apr (chk-apr-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-p (chk-p-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nomcp (chk-nomcp-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nobind (chk-nobind-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-qerr (chk-qerr-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-src (chk-src-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-noreq (chk-noreq-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-long (chk-long-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-slow (chk-slow-t1003140842) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-m-t1003140842 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the one comparison call is sent to the configured model 'e2e-cmp-model-b' (model tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the report metadata records model 'e2e-cmp-model-b'",
+          "detail": ""
+        }
+      ]
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "The comparison model is taken from configuration (aias.check.comparison-model.model = 'e2e-cmp-model-b', tier FREE, data class SYNTHETIC): the call is sent to it and the report records it",
+      "mode": "mode [aias.registry.package-directory=local/e2e-chk/packages, aias.documents.storage-root=local/e2e-chk/root, spring.ai.openai.base-url=http://127.0.0.1:7294/v1beta/openai, aias.check.comparison-model.model=e2e-cmp-model-b, aias.check.timeout=PT45S, aias.check.upload-window=PT75S, aias.check.deadline-check-interval=PT2S, aias.check.max-rows=1000, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, connections=['local-oracle', 'local-jdbc', 'main-db']]",
+      "at": "2026-10-03T18:08:51"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T18:09:29"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 960,
+      "serviceCode": "chk-m-t1003140842",
+      "requestNumber": "E2E-20261003T140842Z-CFGM",
+      "what": "started by 'The comparison model is taken from configuration (aias.check.comparison-model.model = 'e2e-cmp-model-b', tier FREE, data class SYNTHETIC): the call is sent to it and the report records it'"
+    }
+  ]
+}

@@ -1,0 +1,3820 @@
+{
+  "runId": "20261003T135010Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": "the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er",
+  "groups": {
+    "registry": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "refusals": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "lifecycle": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 1,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "expiry": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "limits": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 5,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "connection": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "chk-pipeline": {
+      "passed": 18,
+      "failed": 0,
+      "skipped": 1,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "chk-endings": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "chk-gate": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "chk-eval": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "chk-inprocess": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "ambiguous": 0,
+      "notExercisable": 6,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "registry",
+      "name": "The four fixture services are listed with their fetch modes, without SQL or connection",
+      "tcs": [
+        "TC-REG-014",
+        "TC-REG-005",
+        "TC-REG-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-manual: available, fetch manual, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-approval: available, fetch manual, approval True",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path: available, fetch path, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-blob: available, fetch blob, approval False",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-path requires TRANSCRIPT and ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no SQL / connection detail in the list",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "The load report shows both connections ACTIVATED and every fixture package loaded",
+      "tcs": [
+        "TC-REG-008",
+        "TC-REG-051",
+        "TC-REG-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/load-results -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "rows of the latest load run only",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-oracle ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-jdbc ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-manual REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-approval REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-path REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "package demo-blob REGISTERED/UNCHANGED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no REJECTED row",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "An unknown service code is 404 REG-404-SERVICE-NOT-FOUND",
+      "tcs": [
+        "TC-REG-016"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/no-such-service-e2e -> 404 REG-404-SERVICE-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "registry",
+      "name": "A service code is read trimmed and case-insensitively",
+      "tcs": [
+        "TC-REG-075",
+        "TC-REG-073"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/DEMO-Manual -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upper/mixed case answers demo-manual",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/services/%20%20Demo-Path%20 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "space-padded code answers demo-path",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Start refusals: unknown service, incomplete start, unreadable body, unsupported Content-Type",
+      "tcs": [
+        "TC-CHK-003",
+        "TC-CHK-001",
+        "TC-INT-001"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks -> 422 CHK-422-SERVICE-NOT-AVAILABLE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no identifier returned",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start without employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start with a blank employeeId -> 400 CHK-400-START-INCOMPLETE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "unreadable JSON -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Content-Type text/plain -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Upload refusals and limits on a waiting manual Check",
+      "tcs": [
+        "TC-INT-002",
+        "TC-DOC-013",
+        "TC-DOC-014",
+        "TC-INT-033",
+        "TC-DOC-027",
+        "TC-INT-009",
+        "TC-INT-008",
+        "TC-INT-100",
+        "TC-DOC-015",
+        "TC-INT-010"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        913
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "type the version does not require -> 422",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0-byte file -> 400 DOC-400-INCOMPLETE-UPLOAD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no documentType part -> 400",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a path-shaped file name is accepted as text -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "file name kept as text",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a second upload of the same type -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "file above the 10 MB maximum -> 201 with a notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "oversized=true with notice",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both same-type uploads listed in order",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC listing -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC listing equals the INT relay",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request above the 12 MB request limit -> 413",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload for an unknown Check -> 404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Maximum uploads per Check: 20 accepted, the 21st refused",
+      "tcs": [
+        "TC-INT-097",
+        "TC-DOC-071",
+        "TC-DOC-072"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.3,
+      "checksCreated": [
+        914
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "20 uploads accepted",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload 21 -> 422 DOC-422-UPLOAD-LIMIT-REACHED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Confirmation of an unknown Check; reads of unknown Checks",
+      "tcs": [
+        "TC-CHK-038",
+        "TC-INT-088",
+        "TC-INT-094",
+        "TC-RPT-030"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/987654321/upload-confirmation -> 404 CHK-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/987654321 -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/987654321/required-document-types -> 404 RPT-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/987654321 -> 404 CHK-404-ACTIVE-CHECK-NOT-FOUND",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Non-numeric identifiers are refused by each module's own code",
+      "tcs": [
+        "TC-INT-005"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports/abc -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc/required-document-types -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/upload-confirmation -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/decision -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "POST /api/v1/checks/abc/documents -> 400 INT-400-REQUEST-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks/abc -> 400 RPT-400-CHECK-ID-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/abc -> 400 CHK-400-CHECK-ID-INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/uploaded-documents?checkId=abc -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/uploaded-documents -> 400 DOC-400-CHECK-ID-REQUIRED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "refusals",
+      "name": "Lists of a request without their keys are refused",
+      "tcs": [
+        "TC-RPT-035",
+        "TC-INT-090"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/checks?requestNumber=x -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/check-reports?serviceCode=demo-manual -> 400 RPT-400-REQUEST-KEYS-MISSING",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "lifecycle",
+      "name": "Active Check of a waiting manual Check: status AWAITING_DOCUMENTS, upload-window deadline",
+      "tcs": [
+        "TC-CHK-083",
+        "TC-CHK-086"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [
+        915
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/915 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "only identifier, status and deadline",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "deadline = start + 60 min",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "lifecycle",
+      "name": "After the Check ends: no Active Check, and its uploads are deleted",
+      "tcs": [
+        "TC-CHK-085",
+        "TC-DOC-052",
+        "TC-CHK-028"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 916 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 6.2,
+      "checksCreated": [
+        916
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript-pass.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "expiry",
+      "name": "Upload window PT1M: a waiting Check ends FAILED / UPLOAD_WINDOW_EXPIRED; Active Check and uploads gone",
+      "tcs": [
+        "TC-CHK-040",
+        "TC-CHK-041",
+        "TC-CHK-083",
+        "TC-CHK-028",
+        "TC-DOC-052"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 66.2,
+      "checksCreated": [
+        917
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/917 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "deadline = start + 1 min (60.0 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload inside the window -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "boundary: 30 s into the window the Check still waits (TC-CHK-041)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the Check ended within 120 s",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / UPLOAD_WINDOW_EXPIRED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "ended 60.1 s after the start (window 60 s + check interval 5 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Active Check gone after the expiry -> 404",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "INT: no upload listed after the expiry (REQ-DOC-054)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "DOC: uploads deleted after the expiry",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload after the expiry -> 409 INT-409",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirmation after the expiry -> 409 CHK-409",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "limits",
+      "name": "max-file-size 1 KB: a 4.5 KB path document is UNREADABLE / TOO_LARGE without being read",
+      "tcs": [
+        "TC-DOC-025",
+        "TC-DOC-018"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 36.6,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "limits",
+      "name": "max-file-size 1 KB: a 2000-byte BLOB is UNREADABLE / TOO_LARGE, measured before any byte is read",
+      "tcs": [
+        "TC-DOC-024",
+        "TC-DOC-018"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "limits",
+      "name": "REAL data, FREE reading model: the PNG is UNREADABLE / MODEL_NOT_PERMITTED, the PDF beside it is READ",
+      "tcs": [
+        "TC-DOC-065",
+        "TC-DOC-064"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.3,
+      "checksCreated": [
+        918
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-approval -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload scan.png -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 upload(s) listed without content",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "limits",
+      "name": "max-rows 1: a query answering 2 rows is recorded unread ('more than 1 rows') -> NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-CHK-031",
+        "TC-CHK-032"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.1,
+      "checksCreated": [
+        919
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-rows -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "limits",
+      "name": "Two simultaneous APPROVED decisions: one 201 (one Approval API call), one 409 after the lock",
+      "tcs": [
+        "TC-INT-098"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "connection",
+      "name": "A package whose query names an unregistered connection is REJECTED at load (ghost-db)",
+      "tcs": [
+        "TC-REG-032",
+        "TC-REG-007",
+        "TC-REG-051"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 36.7,
+      "checksCreated": [
+        920
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-oracle ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-jdbc ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "connection local-extra ACTIVATED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-noconn REJECTED: its query uses the connection \"ghost-db\" (RULE-REG-005)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the rejected package was never registered -> 404",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-conn (query over local-extra) loaded",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the load continued: one REJECTED row only",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-conn available",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start demo-conn -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a Check of demo-conn starts while local-extra is activated",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "connection",
+      "name": "The connection removed from the activation config: REMOVED; start -> 422 CHK-422-CONNECTION-NOT-ACTIVATED",
+      "tcs": [
+        "TC-REG-053",
+        "TC-REG-055",
+        "TC-CHK-004",
+        "TC-CHK-100"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 35.7,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report: connection local-extra REMOVED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-conn's folder REJECTED this load (RULE-REG-005) \u2014 its stored version stays",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "demo-conn keeps its previous state (available) \u2014 a rejected folder withdraws nothing",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start -> 422 CHK-422-CONNECTION-NOT-ACTIVATED (RULE-REG-017, REQ-CHK-006)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the refusal names the connection",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-100 (XM-CHK-005 degraded: REG answers no connection settings): the typed refusal's message (en)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check created",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-100: the result port received 0 create calls (no Check run of the request)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "connection",
+      "name": "Back to the normal registry: demo-conn's folder parked again -> WITHDRAWN",
+      "tcs": [
+        "TC-REG-010"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 36.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report: demo-conn WITHDRAWN",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "neither connection fixture is listed",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Provider switched by configuration only: Gemini (provider A, real call) then the local OpenAI-compatible endpoint (provider B, stub) \u2014 the configured model is called and recorded",
+      "tcs": [
+        "TC-CHK-081",
+        "TC-CHK-082"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Path Check '00-1001/A' by ' e.2041 ': answered before its query, the pipeline's steps in order, 1 query (stored text, bound value) over the MCP tool, documents fetched once, 2 READ contents and the row only inside the data delimiters, one finding per required type",
+      "tcs": [
+        "TC-CHK-054",
+        "TC-CHK-055",
+        "TC-CHK-057",
+        "TC-CHK-060",
+        "TC-CHK-061",
+        "TC-CHK-063",
+        "TC-CHK-064",
+        "TC-CHK-065",
+        "TC-CHK-066",
+        "TC-CHK-069",
+        "TC-CHK-008",
+        "TC-CHK-067"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 48.4,
+      "checksCreated": [
+        921
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-m (chk-m-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-apr (chk-apr-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-p (chk-p-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nomcp (chk-nomcp-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nobind (chk-nobind-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-qerr (chk-qerr-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-src (chk-src-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-noreq (chk-noreq-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-long (chk-long-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-slow (chk-slow-t1003135010) loaded (C1)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-p-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-054: the Check run is RUNNING right after the answer",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-054: CheckEngine.startCheck returned identifier 921 to its caller (INT log) before the first service query was sent (MCP send log); the HTTP answer reached the client at 13:54:30.470950",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-055: request number '00-1001/A' and employee ' e.2041 ' handed over unchanged",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-057: the Check run carries the service code and version 3 (the current version)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-060 / TC-CHK-008: CHK sends exactly 1 query, request_details; attachments (the document source query) 0 times",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-008: RULE-CHK-005 logged (internal log only)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-060 / TC-CHK-061: request_details sent once through the query tool 'query' of the mcp connection local-oracle, SQL text = the stored text character for character, request number only as bind",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-008: the document source query reaches the channel exactly once \u2014 Document Access's own call",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-063: Document Access fetch called once with Check id, service code, version 3 (and request number '00-1001/A', the source query's bound value)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "steps in order: service queries -> documents -> comparison -> ending (REQ-CHK-009)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one comparison call (model tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-069: the user part holds exactly the row block and the 2 READ contents",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-069: the row and the 2 contents appear only between the data delimiters (nothing outside)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-069: the instruction part contains 0 characters of the row or the contents",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-064: the document content used is the content returned by Document Access",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-064 / TC-CHK-061: no CHK class opens a file or a JDBC connection (source scan of the imports; ModelEvaluationRunner \u2014 profile model-eval only \u2014 excepted); 0 such log lines",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-065: exactly 2 required-document findings, one TRANSCRIPT and one ID_CARD",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-066: 2 ID_CARD outcomes (READ, UNREADABLE/NOT_FOUND) -> the ID_CARD finding is SATISFIED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-067: the model's explicit value '3.4', location 'request_details.GPA', comparison '>=', limit '3.0' (outcome sent UNDETERMINED) is recomputed: SATISFIED; the Check COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-067: the output schema sent asks for value found, location, comparison and limit",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A request number carrying SQL text is only the bound value; a query with no bind parameter is never sent (RULE-CHK-003)",
+      "tcs": [
+        "TC-CHK-006"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        922
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-nobind-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "requestId bound to the value \"1001' OR '1'='1\"",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the SQL text sent equals the stored text character for character; the request number appears 0 times in it",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "RULE-CHK-003: static_q (no bind parameter) sent 0 times",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "RULE-CHK-003: static_q recorded not read with the rule's message",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request number stored as sent; an unread query gives NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A query over a connection that is not a read-only MCP connection (main-db, type jdbc) is not run and is recorded as not read",
+      "tcs": [
+        "TC-CHK-007"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        923
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-nomcp-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 calls sent for request_details (MCP tap: no call during the Check)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "request_details listed not read with RULE-CHK-002's detail (en)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the Overall Status is not COMPLIANT (NEEDS_MANUAL_REVIEW) although every finding is SATISFIED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A failing service query (ORA-00942) is recorded as not read, the Check continues; every finding SATISFIED + an unread query -> NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-CHK-030",
+        "TC-CHK-026"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        924
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-qerr-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the channel answered request_details with ORA-00942 (MCP tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-030: request_details not read with the host's failure text (ORA-00942 'table or view ... does not exist' \u2014 Oracle 23 names the table inside the TC's text)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-030: the Check continued to the document step (Document Access fetch called once)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-026: 5 SATISFIED findings and request_details not read -> NEEDS_MANUAL_REVIEW, never COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A model SATISFIED contradicting the recomputed comparison (2.8 >= 3.0) is replaced: NOT_SATISFIED, NOT_COMPLIANT",
+      "tcs": [
+        "TC-CHK-012"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        925
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the GPA finding is NOT_SATISFIED (2.8 >= 3.0 is false); the model's SATISFIED is not kept",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the Overall Status is NOT_COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Deterministic checks part 2 (ADR-CHK-003), one finding each: value not in the data, limit not in the knowledge (RULE-CHK-006), value not a number, evidence absent, empty evidence; every comparison operator recomputed for numbers and dates",
+      "tcs": [
+        "TC-CHK-013",
+        "TC-CHK-014",
+        "TC-CHK-015",
+        "TC-CHK-016",
+        "TC-CHK-023",
+        "TC-CHK-012"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        926
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the knowledge states no '2.5' and no '3.5'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "precondition: '3.5' is in none of the Check's data",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-013: value found '3.5' not in the data (GPA 2.8) -> UNDETERMINED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-014: limit '2.5' not in the knowledge -> UNDETERMINED with RULE-CHK-006's note (en)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-015: value 'three point four' (present in the transcript) cannot be read as a number -> UNDETERMINED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-016: evidence 'nationality: KW' in no query result or document -> UNDETERMINED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-023: SATISFIED with an empty evidence -> UNDETERMINED (evidence recorded 'NONE')",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-012: 22 explicit comparisons recomputed in code (>=, >, <=, <, = on numbers and dates; before, after, on or before, on or after on ISO and dd/MM/yyyy dates; unknown operator, operator of the other kind and mixed kinds UNDETERMINED); the model's outcome never kept",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a NOT_SATISFIED finding -> NOT_COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Overall Status precedence: 1 NOT_SATISFIED + 1 UNDETERMINED + 3 SATISFIED -> NOT_COMPLIANT, handed over COMPLETED with 5 findings and 2 document outcomes",
+      "tcs": [
+        "TC-CHK-024",
+        "TC-CHK-072"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        927
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "5 findings after verification: 1 NOT_SATISFIED, 1 UNDETERMINED, 3 SATISFIED; every query read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-024: NOT_COMPLIANT (outranks NEEDS_MANUAL_REVIEW)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-072: COMPLETED, Overall Status NOT_COMPLIANT, 5 findings and 2 document outcomes handed over",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Overall Status: 1 UNDETERMINED + 4 SATISFIED, every query read -> NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-CHK-025"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.2,
+      "checksCreated": [
+        928
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "5 findings (1 UNDETERMINED, 4 SATISFIED), every query read -> NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A COMPLIANT Check: no Employee Decision handed over, document outcomes without content (3 000-character transcript), exactly one end-of-Check notice after the complete call",
+      "tcs": [
+        "TC-CHK-020",
+        "TC-CHK-074",
+        "TC-CHK-077"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.2,
+      "checksCreated": [
+        929
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED / COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-020: the hand-over carries 0 Employee Decision values (decision null)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-074: the READ TRANSCRIPT (3296 characters of content given to the model) is handed over with documentType, sourceMode, readStatus READ and 0 characters of content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 929 (COMPLETED), after its ending was handed to the result port",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A COMPLIANT Check of an approval-enabled service: 0 approval calls; a model note carrying an UPDATE statement is never executed and is stored only as finding text",
+      "tcs": [
+        "TC-CHK-019",
+        "TC-CHK-018"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.2,
+      "checksCreated": [
+        930
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-apr-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fee-waiver-like service (approval enabled, version 2) COMPLETED / COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-019: 0 host approval calls (approval stub log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-018: 1 query (request_details, before the comparison), 0 queries after it, no UPDATE sent",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-018: the note is stored only as finding text; no decision recorded",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Instruction text in the transcript and a forged </check-data> in a query result stay data: escaped inside their blocks, absent from the instruction part; GPA 2.8 stays NOT_SATISFIED",
+      "tcs": [
+        "TC-CHK-021",
+        "TC-CHK-053"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        931
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one comparison call (model tap)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-021: the sentence appears 0 times in the instruction part and only inside a data block",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-053: the forged closing delimiter is escaped (&lt;) \u2014 exactly one closing delimiter per data source; 0 characters of the query result in the instruction part",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the GPA finding is NOT_SATISFIED and the Overall Status NOT_COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "The model call: 2 messages, 0 tools, the fixed output schema (condition, outcome, evidence, note) validated; the 4 200-character knowledge whole as the only service instruction; no earlier conversation of the same request",
+      "tcs": [
+        "TC-CHK-017",
+        "TC-CHK-070",
+        "TC-CHK-068",
+        "TC-CHK-079"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.2,
+      "checksCreated": [
+        932,
+        933
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "service knowledge of 4 200 characters",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-long-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-long-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one comparison call per Check",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-017: call A carries 0 tool and 0 function definitions",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-017: call B carries 0 tool and 0 function definitions",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-068: the instruction part ends with the 4 200 characters unaltered",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-068: the rest is the fixed engine framing only (identical for another service)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-070: the call carries 1 output schema with the fields condition, outcome, evidence and note",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-070: the output validated against it (COMPLETED; free text fails MODEL_OUTPUT_INVALID \u2014 chk-endings)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-079: the call of Check 933 holds 1 instruction part and 1 data part and 0 messages or outputs of Check 932 (same request, completed before)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Two concurrent Checks share no data; a second Check of the same request starts on its own while the first is RUNNING",
+      "tcs": [
+        "TC-CHK-078",
+        "TC-CHK-080"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 14.6,
+      "checksCreated": [
+        934,
+        935,
+        936,
+        937
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both confirmed at the same time -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "one comparison call each",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-078: the model input of each Check (both at the comparison step together) contains 0 values of the other's query results or documents",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "both COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-p-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-p-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-080: a new identifier 937 is returned; Check 936 stays RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-080: each Check runs its own service query (2 request_details calls for request 1001) and ends",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "Each query call carries the row limit maxRows + 1 and only the Check's time left (slow first query, then request_details)",
+      "tcs": [
+        "TC-CHK-062"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 4.2,
+      "checksCreated": [
+        938
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-slow-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "maximum rows 1000: both calls request 1001 rows (to detect an over-limit answer)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "each call is bounded by the time left before the 45 s timeout (time left <= timeout - time run); the second query, sent after the slow first one, has less time",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "XM-CHK-001 degraded: no package of 'scholarship-request' loaded -> 422 CHK-422-SERVICE-NOT-AVAILABLE, no Check run, no Active Check",
+      "tcs": [
+        "TC-CHK-096"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start -> 422 CHK-422-SERVICE-NOT-AVAILABLE (typed, defined)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Check identifier returned",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 Check runs created for it (result port: 0 create calls)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "XM-CHK-003 degraded: the version's only query is its document source query -> 0 service queries, documents fetched, exactly one ending, Active Check deleted",
+      "tcs": [
+        "TC-CHK-098"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.1,
+      "checksCreated": [
+        939
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-src-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 service queries sent by CHK",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the Check reached the document step and ended COMPLETED with an Overall Status (never RUNNING)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its Active Check is deleted -> 404",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 939 (COMPLETED (document-source-only version)), after its ending was handed to the result port",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "XM-CHK-004 degraded: the version lists no required document type -> 0 required-document findings, the model's findings verified, one ending",
+      "tcs": [
+        "TC-CHK-099"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 1.1,
+      "checksCreated": [
+        940
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-noreq-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 required-document findings; only the comparison's findings",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the findings verified as usual (absent evidence -> UNDETERMINED); exactly one ending: COMPLETED / NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-pipeline",
+      "name": "A completed Check's working data is discarded: its query-result, document and model-output markers are held by no live Check Engine object (heap dump)",
+      "tcs": [
+        "TC-CHK-045"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 242.9,
+      "checksCreated": [
+        941
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check COMPLETED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "none of the three markers is report data",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "live-object heap dump of the app (jcmd GC.heap_dump)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 query results, 0 document contents and 0 model outputs of the Check held by a live Check Engine object (CheckContext, caches, static state)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "copies still in the live heap, by first holder: {\"CHKQMRK3EB7FF794\": [\"Object[]\", \"java.io.BufferedReader\", \"java.nio.HeapByteBuffer\", \"java.nio.HeapCharBuffer\"], \"CHKD3EB7FF794\": [\"Object[]\", \"java.nio.HeapByteBuffer\", \"kotlin.SynchronizedLazyImpl\", \"okio.Segment\"], \"CHKM3EB7FF794\": [\"Object[]\", \"okio.Segment\"]}",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-endings",
+      "name": "Model output outside the fixed structure (free text) -> FAILED / MODEL_OUTPUT_INVALID, no Overall Status, exactly one end-of-Check notice after the fail call",
+      "tcs": [
+        "TC-CHK-022",
+        "TC-CHK-042"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.1,
+      "checksCreated": [
+        942
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / MODEL_OUTPUT_INVALID",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "detail: the answer is not in the fixed report structure",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 942 (MODEL_OUTPUT_INVALID), after its ending was handed to the result port",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Active Check deleted -> 404",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-endings",
+      "name": "The comparison model provider answers HTTP 503 -> FAILED / MODEL_UNAVAILABLE, no Overall Status",
+      "tcs": [
+        "TC-CHK-035"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 5.2,
+      "checksCreated": [
+        943
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / MODEL_UNAVAILABLE",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "detail names the provider's 503",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 943 (MODEL_UNAVAILABLE), after its ending was handed to the result port",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-endings",
+      "name": "The result port rejects the complete call (a finding with a blank condition) -> FAILED / INTERNAL_ERROR, one end-of-Check notice",
+      "tcs": [
+        "TC-CHK-029"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 3.2,
+      "checksCreated": [
+        944
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / INTERNAL_ERROR",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the report was handed over and rejected by the result port (log)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 944 (INTERNAL_ERROR)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-endings",
+      "name": "A Check RUNNING past its timeout (the model holds its answer 60 s, timeout 45 s) ends FAILED / TIMED_OUT with one reason, a detail and an end time; the late answer is discarded",
+      "tcs": [
+        "TC-CHK-033",
+        "TC-CHK-036"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 66.3,
+      "checksCreated": [
+        945
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / TIMED_OUT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-036: exactly one reason TIMED_OUT, a non-empty detail, an end time; ended after the 45 s timeout (46 s)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 945 (TIMED_OUT), after its ending was handed to the result port",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the model's later answer (60 s) is discarded: 0 complete calls, the report unchanged",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "still exactly 1 end-of-Check notice after the late answer",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-endings",
+      "name": "Timeout counted from RUNNING: a Check waiting 50 s (> the 45 s timeout) is confirmed and runs on; the deadline check ends only the waiting Check past its window; confirmation refusals",
+      "tcs": [
+        "TC-CHK-034",
+        "TC-CHK-051",
+        "TC-CHK-039",
+        "TC-CHK-038"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 87.1,
+      "checksCreated": [
+        946,
+        947
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Check B confirmed after waiting 50 s -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "a second confirmation of B -> 409",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its message names status RUNNING",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-034: B's deadline is the confirmation + 45 s (45.0 s), not its start + 45 s",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-051: A (AWAITING_DOCUMENTS, deadline passed) ended UPLOAD_WINDOW_EXPIRED; GET A -> 404 CHK-404-ACTIVE-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-051 / TC-CHK-034: B (RUNNING, deadline not passed) 0 fail calls: GET B -> 200 RUNNING, still RUNNING 77 s after its start",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "A was AWAITING_DOCUMENTS before",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-039: confirming the FAILED Check A -> 409",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-039: message (en) 'Check {a} is not waiting for documents; its status is FAILED.'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-039: A keeps status FAILED / UPLOAD_WINDOW_EXPIRED; 0 markRunning (runningSince null)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-038: an unknown Check -> 404 CHK-404-CHECK-NOT-FOUND",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "its message (en)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 946 (UPLOAD_WINDOW_EXPIRED), after its ending was handed to the result port",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "TC-CHK-034: B ran 36 s and COMPLETED; 0 fail calls",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-endings",
+      "name": "A Check that completes just before its deadline is not ended a second time by the timeout path (the DELETE guard)",
+      "tcs": [
+        "TC-CHK-050"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 54.0,
+      "checksCreated": [
+        948
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "COMPLETED 40 s after the confirmation, before its 45 s deadline",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "after the deadline passed: 0 fail calls, the report unchanged (COMPLETED)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 further end-of-Check notices (exactly 1 in all)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-gate",
+      "name": "Data class declared without a value counts as REAL: the FREE model receives 0 calls, the Check fails MODEL_NOT_PERMITTED; a restart ends a waiting Check INTERRUPTED with one notice",
+      "tcs": [
+        "TC-CHK-048"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 42.0,
+      "checksCreated": [
+        949,
+        950
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-m (chk-m-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-apr (chk-apr-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-p (chk-p-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nomcp (chk-nomcp-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nobind (chk-nobind-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-qerr (chk-qerr-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-src (chk-src-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-noreq (chk-noreq-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-long (chk-long-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-slow (chk-slow-t1003135010) loaded (C2a)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the waiting Check was ended INTERRUPTED by the restart",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 949 (INTERRUPTED)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / MODEL_NOT_PERMITTED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the data class used is REAL (detail)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the comparison model receives 0 calls (tap, stub)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Document Access received exactly 1 end-of-Check notice for Check 950 (MODEL_NOT_PERMITTED), after its ending was handed to the result port",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-gate",
+      "name": "Comparison model tier declared without a value counts as FREE: with data class REAL the model receives 0 calls and the Check fails MODEL_NOT_PERMITTED",
+      "tcs": [
+        "TC-CHK-049"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 36.8,
+      "checksCreated": [
+        951
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "load report -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-m (chk-m-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-apr (chk-apr-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-p (chk-p-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nomcp (chk-nomcp-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-nobind (chk-nobind-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-qerr (chk-qerr-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-src (chk-src-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-noreq (chk-noreq-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-long (chk-long-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "fixture chk-slow (chk-slow-t1003135010) loaded (C2b)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start chk-m-t1003135010 -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload TRANSCRIPT -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload ID_CARD -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "FAILED / MODEL_NOT_PERMITTED",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "no Overall Status and no finding",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the tier used is FREE (detail)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the comparison model receives 0 calls (tap, stub)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-gate",
+      "name": "The end-of-Check notice is sent exactly once on every ending path (COMPLETED and the 7 failure reasons)",
+      "tcs": [
+        "TC-CHK-043"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "each of the 8 Checks received exactly 1 end-of-Check notice, after its ending (per-path evidence in the scenarios of chk-pipeline / chk-endings / chk-gate)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Model-evaluation run (profile model-eval) over a SYNTHETIC known-result set of 6 requests (test-supplied under local/e2e-chk/model-eval/set, runner's documented record format) against the scripted stub: the report lists request, expected and reached status; the run PASSED",
+      "tcs": [
+        "TC-CHK-088"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 36.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "the run report lists 6 rows, each with the request, the expected and the reached Overall Status",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the run is reported PASSED on the configured model 'e2e-cmp-model-b'",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "6 calls of the configured comparison model (model tap)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Known-result request SYN-001 reaches COMPLIANT",
+      "tcs": [
+        "TC-CHK-090"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-001: expected COMPLIANT, reached COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Known-result request SYN-002 reaches NOT_COMPLIANT",
+      "tcs": [
+        "TC-CHK-091"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-002: expected NOT_COMPLIANT, reached NOT_COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Known-result request SYN-003 reaches NOT_COMPLIANT",
+      "tcs": [
+        "TC-CHK-092"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-003: expected NOT_COMPLIANT, reached NOT_COMPLIANT",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Known-result request SYN-004 reaches NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-CHK-093"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-004: expected NEEDS_MANUAL_REVIEW, reached NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Known-result request SYN-005 reaches NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-CHK-094"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-005: expected NEEDS_MANUAL_REVIEW, reached NEEDS_MANUAL_REVIEW",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "0 rows of request_details (1001 > 1000, not read) in the model input",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "Known-result request SYN-006 reaches NOT_COMPLIANT",
+      "tcs": [
+        "TC-CHK-095"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-006: expected NOT_COMPLIANT, reached NOT_COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the sentence stays in the data part (0 times in the instruction part)",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-eval",
+      "name": "A known-result request reaching another status than expected fails the run and is named (SYN-901 expected NOT_COMPLIANT, reached COMPLIANT under the scripted double)",
+      "tcs": [
+        "TC-CHK-089"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 36.6,
+      "checksCreated": [],
+      "checks": [
+        {
+          "ok": true,
+          "check": "row SYN-901: expected NOT_COMPLIANT, reached COMPLIANT",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "the run is reported FAILED and names SYN-901",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "chk-inprocess",
+      "name": "An unexpected error in a deterministic step ends the Check FAILED / INTERNAL_ERROR",
+      "tcs": [
+        "TC-CHK-005"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs a fault injected into the deterministic step: no request data, document or model output reaching it through the API raises an unexpected error there (every shape is handled \u2014 absent evidence, unparsable values, unknown operators, blank texts). The INTERNAL_ERROR ending itself is evidenced by TC-CHK-029 (chk-endings)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "chk-inprocess",
+      "name": "A Document Access failure ends the Check FAILED / INTERNAL_ERROR with the failure text",
+      "tcs": [
+        "TC-CHK-011"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "Document Access raises only for an unresolvable service version (\"service package version not found\"); a Check always fetches the version it was started on and REG keeps every version, every other DOC failure is a document outcome (UNREADABLE), never an exception \u2014 no public path",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "chk-inprocess",
+      "name": "A failing end-of-Check notice is retried once, logged, and the ending is kept",
+      "tcs": [
+        "TC-CHK-044"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "needs Document Access's endCheck to fail twice while the ending's own database transaction succeeds \u2014 both use the same database; not producible through the API",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "chk-inprocess",
+      "name": "A manual Check keeps its start version when a newer one becomes current",
+      "tcs": [
+        "TC-CHK-058"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "a newer version becomes current only through a load run at an instance start, and every start ends all unfinished Checks INTERRUPTED (REQ-CHK-055, global): no Check can await uploads on version 3 while version 4 is current (same reason as TC-INT-032)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "chk-inprocess",
+      "name": "XM-CHK-002 degraded: the recorded version cannot be resolved on resume",
+      "tcs": [
+        "TC-CHK-097"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "REG never deletes a stored version and a waiting Check does not survive a restart (REQ-CHK-055), so getServicePackageVersion never answers not-found for a Check's recorded version",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "chk-inprocess",
+      "name": "The known-result set has every Overall Status, each request synthetic",
+      "tcs": [
+        "TC-CHK-087"
+      ],
+      "modelDependent": false,
+      "status": "NOT-EXERCISABLE",
+      "reason": "no known-result set is delivered with the service (model-eval/known-result-set/ is absent); the chk-eval group supplies a synthetic one to exercise the runner, which proves the runner, not the delivered set",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "Upload window PT1M: a waiting Check ends FAILED / UPLOAD_WINDOW_EXPIRED; Active Check and uploads gone",
+      "mode": "mode [aias.check.upload-window=PT1M, aias.check.deadline-check-interval=PT5S]",
+      "at": "2026-10-03T17:50:24"
+    },
+    {
+      "scenario": "max-file-size 1 KB: a 4.5 KB path document is UNREADABLE / TOO_LARGE without being read",
+      "mode": "mode [aias.check.max-file-size=1KB, aias.check.max-rows=1, aias.documents.data-class=REAL, aias.check.comparison-model.tier=APPROVED]",
+      "at": "2026-10-03T17:52:01"
+    },
+    {
+      "scenario": "A package whose query names an unregistered connection is REJECTED at load (ghost-db)",
+      "mode": "mode [connections=['local-oracle', 'local-jdbc', 'local-extra']], moved in ['demo-conn', 'demo-noconn']",
+      "at": "2026-10-03T17:52:38"
+    },
+    {
+      "scenario": "The connection removed from the activation config: REMOVED; start -> 422 CHK-422-CONNECTION-NOT-ACTIVATED",
+      "mode": "mode [normal], moved in ['demo-conn']",
+      "at": "2026-10-03T17:53:14"
+    },
+    {
+      "scenario": "Back to the normal registry: demo-conn's folder parked again -> WITHDRAWN",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T17:53:50"
+    },
+    {
+      "scenario": "Path Check '00-1001/A' by ' e.2041 ': answered before its query, the pipeline's steps in order, 1 query (stored text, bound value) over the MCP tool, documents fetched once, 2 READ contents and the row only inside the data delimiters, one finding per required type",
+      "mode": "mode [aias.registry.package-directory=local/e2e-chk/packages, aias.documents.storage-root=local/e2e-chk/root, spring.ai.openai.base-url=http://127.0.0.1:7294/v1beta/openai, aias.check.comparison-model.model=e2e-cmp-model-b, aias.check.timeout=PT45S, aias.check.upload-window=PT75S, aias.check.deadline-check-interval=PT2S, aias.check.max-rows=1000, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, connections=['local-oracle', 'local-jdbc', 'main-db']]",
+      "at": "2026-10-03T17:54:30"
+    },
+    {
+      "scenario": "Data class declared without a value counts as REAL: the FREE model receives 0 calls, the Check fails MODEL_NOT_PERMITTED; a restart ends a waiting Check INTERRUPTED with one notice",
+      "mode": "mode [aias.registry.package-directory=local/e2e-chk/packages, aias.documents.storage-root=local/e2e-chk/root, spring.ai.openai.base-url=http://127.0.0.1:7294/v1beta/openai, aias.check.comparison-model.model=e2e-cmp-model-b, aias.check.timeout=PT45S, aias.check.upload-window=PT75S, aias.check.deadline-check-interval=PT2S, aias.check.max-rows=1000, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.documents.data-class=, connections=['local-oracle', 'local-jdbc', 'main-db']]",
+      "at": "2026-10-03T18:03:39"
+    },
+    {
+      "scenario": "Comparison model tier declared without a value counts as FREE: with data class REAL the model receives 0 calls and the Check fails MODEL_NOT_PERMITTED",
+      "mode": "mode [aias.registry.package-directory=local/e2e-chk/packages, aias.documents.storage-root=local/e2e-chk/root, spring.ai.openai.base-url=http://127.0.0.1:7294/v1beta/openai, aias.check.comparison-model.model=e2e-cmp-model-b, aias.check.timeout=PT45S, aias.check.upload-window=PT75S, aias.check.deadline-check-interval=PT2S, aias.check.max-rows=1000, spring.ai.mcp.client.stdio.connections.local-oracle.command=python3, spring.ai.mcp.client.stdio.connections.local-oracle.args=scripts/e2e/mcp_tap.py,governance/mcp-servers/oracle/index.js, aias.check.comparison-model.tier=, aias.documents.data-class=REAL, connections=['local-oracle', 'local-jdbc', 'main-db']]",
+      "at": "2026-10-03T18:04:20"
+    },
+    {
+      "scenario": "Model-evaluation run (profile model-eval) over a SYNTHETIC known-result set of 6 requests (test-supplied under local/e2e-chk/model-eval/set, runner's documented record format) against the scripted stub: the report lists request, expected and reached status; the run PASSED",
+      "mode": "profiles local,model-eval (set)",
+      "at": "2026-10-03T18:04:58"
+    },
+    {
+      "scenario": "A known-result request reaching another status than expected fails the run and is named (SYN-901 expected NOT_COMPLIANT, reached COMPLIANT under the scripted double)",
+      "mode": "profiles local,model-eval (mismatch)",
+      "at": "2026-10-03T18:05:34"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T18:06:11"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 913,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T135010Z-UPL-5ed1df",
+      "what": "started by 'Upload refusals and limits on a waiting manual Check'"
+    },
+    {
+      "checkId": 914,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T135010Z-MAXUP-c56fb6",
+      "what": "started by 'Maximum uploads per Check: 20 accepted, the 21st refused'"
+    },
+    {
+      "checkId": 915,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T135010Z-LIFE-cbbedb",
+      "what": "started by 'Active Check of a waiting manual Check: status AWAITING_DOCUMENTS, upload-window deadline'"
+    },
+    {
+      "checkId": 916,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T135010Z-PASS",
+      "what": "started by 'After the Check ends: no Active Check, and its uploads are deleted'"
+    },
+    {
+      "checkId": 917,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T135010Z-EXP-d8e481",
+      "what": "started by 'Upload window PT1M: a waiting Check ends FAILED / UPLOAD_WINDOW_EXPIRED; Active Check and uploads gone'"
+    },
+    {
+      "checkId": 918,
+      "serviceCode": "demo-approval",
+      "requestNumber": "E2E-20261003T135010Z-LIMITS-APR",
+      "what": "started by 'REAL data, FREE reading model: the PNG is UNREADABLE / MODEL_NOT_PERMITTED, the PDF beside it is READ'"
+    },
+    {
+      "checkId": 919,
+      "serviceCode": "demo-rows",
+      "requestNumber": "E2E-20261003T135010Z-ROWS",
+      "what": "started by 'max-rows 1: a query answering 2 rows is recorded unread ('more than 1 rows') -> NEEDS_MANUAL_REVIEW'"
+    },
+    {
+      "checkId": 920,
+      "serviceCode": "demo-conn",
+      "requestNumber": "E2E-20261003T135010Z-CONN-OK",
+      "what": "started by 'A package whose query names an unregistered connection is REJECTED at load (ghost-db)'"
+    },
+    {
+      "checkId": 921,
+      "serviceCode": "chk-p-t1003135010",
+      "requestNumber": "00-1001/A",
+      "what": "started by 'Path Check '00-1001/A' by ' e.2041 ': answered before its query, the pipeline's steps in order, 1 query (stored text, bound value) over the MCP tool, documents fetched once, 2 READ contents and the row only inside the data delimiters, one finding per required type'"
+    },
+    {
+      "checkId": 922,
+      "serviceCode": "chk-nobind-t1003135010",
+      "requestNumber": "1001' OR '1'='1",
+      "what": "started by 'A request number carrying SQL text is only the bound value; a query with no bind parameter is never sent (RULE-CHK-003)'"
+    },
+    {
+      "checkId": 923,
+      "serviceCode": "chk-nomcp-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-NOMCP",
+      "what": "started by 'A query over a connection that is not a read-only MCP connection (main-db, type jdbc) is not run and is recorded as not read'"
+    },
+    {
+      "checkId": 924,
+      "serviceCode": "chk-qerr-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-QERR",
+      "what": "started by 'A failing service query (ORA-00942) is recorded as not read, the Check continues; every finding SATISFIED + an unread query -> NEEDS_MANUAL_REVIEW'"
+    },
+    {
+      "checkId": 925,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-G28",
+      "what": "started by 'A model SATISFIED contradicting the recomputed comparison (2.8 >= 3.0) is replaced: NOT_SATISFIED, NOT_COMPLIANT'"
+    },
+    {
+      "checkId": 926,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-G28VER",
+      "what": "started by 'Deterministic checks part 2 (ADR-CHK-003), one finding each: value not in the data, limit not in the knowledge (RULE-CHK-006), value not a number, evidence absent, empty evidence; every comparison operator recomputed for numbers and dates'"
+    },
+    {
+      "checkId": 927,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-PREC1",
+      "what": "started by 'Overall Status precedence: 1 NOT_SATISFIED + 1 UNDETERMINED + 3 SATISFIED -> NOT_COMPLIANT, handed over COMPLETED with 5 findings and 2 document outcomes'"
+    },
+    {
+      "checkId": 928,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-PREC2",
+      "what": "started by 'Overall Status: 1 UNDETERMINED + 4 SATISFIED, every query read -> NEEDS_MANUAL_REVIEW'"
+    },
+    {
+      "checkId": 929,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-COMPL",
+      "what": "started by 'A COMPLIANT Check: no Employee Decision handed over, document outcomes without content (3 000-character transcript), exactly one end-of-Check notice after the complete call'"
+    },
+    {
+      "checkId": 930,
+      "serviceCode": "chk-apr-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-APR",
+      "what": "started by 'A COMPLIANT Check of an approval-enabled service: 0 approval calls; a model note carrying an UPDATE statement is never executed and is stored only as finding text'"
+    },
+    {
+      "checkId": 931,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-G28INJ",
+      "what": "started by 'Instruction text in the transcript and a forged </check-data> in a query result stay data: escaped inside their blocks, absent from the instruction part; GPA 2.8 stays NOT_SATISFIED'"
+    },
+    {
+      "checkId": 932,
+      "serviceCode": "chk-long-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-CONV",
+      "what": "started by 'The model call: 2 messages, 0 tools, the fixed output schema (condition, outcome, evidence, note) validated; the 4 200-character knowledge whole as the only service instruction; no earlier conversation of the same request'"
+    },
+    {
+      "checkId": 933,
+      "serviceCode": "chk-long-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-CONV",
+      "what": "started by 'The model call: 2 messages, 0 tools, the fixed output schema (condition, outcome, evidence, note) validated; the 4 200-character knowledge whole as the only service instruction; no earlier conversation of the same request'"
+    },
+    {
+      "checkId": 934,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-R1001",
+      "what": "started by 'Two concurrent Checks share no data; a second Check of the same request starts on its own while the first is RUNNING'"
+    },
+    {
+      "checkId": 935,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-R1002",
+      "what": "started by 'Two concurrent Checks share no data; a second Check of the same request starts on its own while the first is RUNNING'"
+    },
+    {
+      "checkId": 936,
+      "serviceCode": "chk-p-t1003135010",
+      "requestNumber": "1001",
+      "what": "started by 'Two concurrent Checks share no data; a second Check of the same request starts on its own while the first is RUNNING'"
+    },
+    {
+      "checkId": 937,
+      "serviceCode": "chk-p-t1003135010",
+      "requestNumber": "1001",
+      "what": "started by 'Two concurrent Checks share no data; a second Check of the same request starts on its own while the first is RUNNING'"
+    },
+    {
+      "checkId": 938,
+      "serviceCode": "chk-slow-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-SLOW",
+      "what": "started by 'Each query call carries the row limit maxRows + 1 and only the Check's time left (slow first query, then request_details)'"
+    },
+    {
+      "checkId": 939,
+      "serviceCode": "chk-src-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-SRC",
+      "what": "started by 'XM-CHK-003 degraded: the version's only query is its document source query -> 0 service queries, documents fetched, exactly one ending, Active Check deleted'"
+    },
+    {
+      "checkId": 940,
+      "serviceCode": "chk-noreq-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-NOREQ",
+      "what": "started by 'XM-CHK-004 degraded: the version lists no required document type -> 0 required-document findings, the model's findings verified, one ending'"
+    },
+    {
+      "checkId": 941,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-MRK3EB7FF794",
+      "what": "started by 'A completed Check's working data is discarded: its query-result, document and model-output markers are held by no live Check Engine object (heap dump)'"
+    },
+    {
+      "checkId": 942,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-INVAL",
+      "what": "started by 'Model output outside the fixed structure (free text) -> FAILED / MODEL_OUTPUT_INVALID, no Overall Status, exactly one end-of-Check notice after the fail call'"
+    },
+    {
+      "checkId": 943,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-U503",
+      "what": "started by 'The comparison model provider answers HTTP 503 -> FAILED / MODEL_UNAVAILABLE, no Overall Status'"
+    },
+    {
+      "checkId": 944,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-REJ",
+      "what": "started by 'The result port rejects the complete call (a finding with a blank condition) -> FAILED / INTERNAL_ERROR, one end-of-Check notice'"
+    },
+    {
+      "checkId": 945,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-TOUT",
+      "what": "started by 'A Check RUNNING past its timeout (the model holds its answer 60 s, timeout 45 s) ends FAILED / TIMED_OUT with one reason, a detail and an end time; the late answer is discarded'"
+    },
+    {
+      "checkId": 946,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-WAITA",
+      "what": "started by 'Timeout counted from RUNNING: a Check waiting 50 s (> the 45 s timeout) is confirmed and runs on; the deadline check ends only the waiting Check past its window; confirmation refusals'"
+    },
+    {
+      "checkId": 947,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-WAITB",
+      "what": "started by 'Timeout counted from RUNNING: a Check waiting 50 s (> the 45 s timeout) is confirmed and runs on; the deadline check ends only the waiting Check past its window; confirmation refusals'"
+    },
+    {
+      "checkId": 948,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-EDGE",
+      "what": "started by 'A Check that completes just before its deadline is not ended a second time by the timeout path (the DELETE guard)'"
+    },
+    {
+      "checkId": 949,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-INTR",
+      "what": "started by 'Data class declared without a value counts as REAL: the FREE model receives 0 calls, the Check fails MODEL_NOT_PERMITTED; a restart ends a waiting Check INTERRUPTED with one notice'"
+    },
+    {
+      "checkId": 950,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-DCLS",
+      "what": "started by 'Data class declared without a value counts as REAL: the FREE model receives 0 calls, the Check fails MODEL_NOT_PERMITTED; a restart ends a waiting Check INTERRUPTED with one notice'"
+    },
+    {
+      "checkId": 951,
+      "serviceCode": "chk-m-t1003135010",
+      "requestNumber": "E2E-20261003T135010Z-TIER",
+      "what": "started by 'Comparison model tier declared without a value counts as FREE: with data class REAL the model receives 0 calls and the Check fails MODEL_NOT_PERMITTED'"
+    }
+  ]
+}

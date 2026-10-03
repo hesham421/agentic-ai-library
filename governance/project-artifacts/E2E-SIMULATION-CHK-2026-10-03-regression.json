@@ -1,0 +1,409 @@
+{
+  "runId": "20261003T140738Z",
+  "baseUrl": "http://localhost:7271",
+  "date": "2026-10-03",
+  "comparisonModel": "gemini-3.6-flash",
+  "modelCalls": {
+    "comparison": 1,
+    "reading": 0
+  },
+  "quotaHit": "the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er",
+  "groups": {
+    "lifecycle": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 1,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    },
+    "limits": {
+      "passed": 0,
+      "failed": 0,
+      "skipped": 5,
+      "ambiguous": 0,
+      "notExercisable": 0,
+      "error": 0
+    }
+  },
+  "scenarios": [
+    {
+      "group": "lifecycle",
+      "name": "Active Check of a waiting manual Check: status AWAITING_DOCUMENTS, upload-window deadline",
+      "tcs": [
+        "TC-CHK-083",
+        "TC-CHK-086"
+      ],
+      "modelDependent": false,
+      "status": "PASSED",
+      "reason": "",
+      "durationSec": 0.1,
+      "checksCreated": [
+        956
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "GET /api/v1/active-checks/956 -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "only identifier, status and deadline",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "deadline = start + 60 min",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "lifecycle",
+      "name": "After the Check ends: no Active Check, and its uploads are deleted",
+      "tcs": [
+        "TC-CHK-085",
+        "TC-DOC-052",
+        "TC-CHK-028"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "check 957 ended MODEL_UNAVAILABLE: the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head",
+      "durationSec": 6.3,
+      "checksCreated": [
+        957
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-manual -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript-pass.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "confirm answers RUNNING",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "limits",
+      "name": "max-file-size 1 KB: a 4.5 KB path document is UNREADABLE / TOO_LARGE without being read",
+      "tcs": [
+        "TC-DOC-025",
+        "TC-DOC-018"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 5.6,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "limits",
+      "name": "max-file-size 1 KB: a 2000-byte BLOB is UNREADABLE / TOO_LARGE, measured before any byte is read",
+      "tcs": [
+        "TC-DOC-024",
+        "TC-DOC-018"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    },
+    {
+      "group": "limits",
+      "name": "REAL data, FREE reading model: the PNG is UNREADABLE / MODEL_NOT_PERMITTED, the PDF beside it is READ",
+      "tcs": [
+        "TC-DOC-065",
+        "TC-DOC-064"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.3,
+      "checksCreated": [
+        958
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-approval -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload scan.png -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "2 upload(s) listed without content",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "limits",
+      "name": "max-rows 1: a query answering 2 rows is recorded unread ('more than 1 rows') -> NEEDS_MANUAL_REVIEW",
+      "tcs": [
+        "TC-CHK-031",
+        "TC-CHK-032"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.1,
+      "checksCreated": [
+        959
+      ],
+      "checks": [
+        {
+          "ok": true,
+          "check": "start demo-rows -> 202",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start answers a numeric checkId",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start status AWAITING_DOCUMENTS",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "start names the Check's read address (checkUrl)",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "Location header names the Check's read",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required document types read -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "required types are the version's [TRANSCRIPT]",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload transcript.pdf -> 201",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "upload receipt echoes type, name, size, oversized=false",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "list uploads -> 200",
+          "detail": ""
+        },
+        {
+          "ok": true,
+          "check": "1 upload(s) listed without content",
+          "detail": ""
+        }
+      ]
+    },
+    {
+      "group": "limits",
+      "name": "Two simultaneous APPROVED decisions: one 201 (one Approval API call), one 409 after the lock",
+      "tcs": [
+        "TC-INT-098"
+      ],
+      "modelDependent": true,
+      "status": "SKIPPED-QUOTA",
+      "reason": "model quota already exhausted in this run (the comparison model call failed: RateLimitException: 429: [{\"error\":{\"code\":429,\"message\":\"You exceeded your current quota, please check your plan and billing details. For more information on this er)",
+      "durationSec": 0.0,
+      "checksCreated": [],
+      "checks": []
+    }
+  ],
+  "restarts": [
+    {
+      "scenario": "max-file-size 1 KB: a 4.5 KB path document is UNREADABLE / TOO_LARGE without being read",
+      "mode": "mode [aias.check.max-file-size=1KB, aias.check.max-rows=1, aias.documents.data-class=REAL, aias.check.comparison-model.tier=APPROVED]",
+      "at": "2026-10-03T18:07:50"
+    },
+    {
+      "scenario": "(end of run)",
+      "mode": "mode [normal]",
+      "at": "2026-10-03T18:08:27"
+    }
+  ],
+  "survivingRecords": [
+    {
+      "checkId": 956,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T140738Z-LIFE-b8f589",
+      "what": "started by 'Active Check of a waiting manual Check: status AWAITING_DOCUMENTS, upload-window deadline'"
+    },
+    {
+      "checkId": 957,
+      "serviceCode": "demo-manual",
+      "requestNumber": "E2E-20261003T140738Z-PASS",
+      "what": "started by 'After the Check ends: no Active Check, and its uploads are deleted'"
+    },
+    {
+      "checkId": 958,
+      "serviceCode": "demo-approval",
+      "requestNumber": "E2E-20261003T140738Z-LIMITS-APR",
+      "what": "started by 'REAL data, FREE reading model: the PNG is UNREADABLE / MODEL_NOT_PERMITTED, the PDF beside it is READ'"
+    },
+    {
+      "checkId": 959,
+      "serviceCode": "demo-rows",
+      "requestNumber": "E2E-20261003T140738Z-ROWS",
+      "what": "started by 'max-rows 1: a query answering 2 rows is recorded unread ('more than 1 rows') -> NEEDS_MANUAL_REVIEW'"
+    }
+  ]
+}

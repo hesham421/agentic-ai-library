@@ -24,12 +24,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The platform MCP query channel over the Spring AI MCP <em>client</em> — interim implementation of
@@ -76,6 +78,14 @@ public class SpringAiMcpQueryChannel implements McpQueryChannel {
     private final ObjectProvider<List<McpSyncClient>> clients;
     private final ListableBeanFactory beanFactory;
     private final ExecutorService calls = Executors.newVirtualThreadPerTaskExecutor();
+
+    /**
+     * One lock per MCP client: the stdio transport of the MCP client accepts one outbound message at a time
+     * (two concurrent {@code callTool}s on the same client fail one of them with "Failed to enqueue message",
+     * seen with two concurrent Checks — E2E chk-pipeline 2026-10-03), so the calls of one client are
+     * serialised; each waits for the lock only within the Check's remaining time (interruptible).
+     */
+    private final Map<McpSyncClient, ReentrantLock> clientLocks = new ConcurrentHashMap<>();
 
     public SpringAiMcpQueryChannel(ObjectProvider<List<McpSyncClient>> clients, ListableBeanFactory beanFactory) {
         this.clients = Objects.requireNonNull(clients, "clients");
@@ -168,7 +178,15 @@ public class SpringAiMcpQueryChannel implements McpQueryChannel {
 
     private CallToolResult callWithin(McpSyncClient client, CallToolRequest request, Duration remaining,
                                       ConnectionSettings connection) {
-        Future<CallToolResult> call = calls.submit(() -> client.callTool(request));
+        ReentrantLock lock = clientLocks.computeIfAbsent(client, unused -> new ReentrantLock());
+        Future<CallToolResult> call = calls.submit(() -> {
+            lock.lockInterruptibly();
+            try {
+                return client.callTool(request);
+            } finally {
+                lock.unlock();
+            }
+        });
         try {
             CallToolResult result = call.get(remaining.toMillis(), TimeUnit.MILLISECONDS);
             if (result == null) {
