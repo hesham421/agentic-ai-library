@@ -1,0 +1,12 @@
+{
+  "name": "mcp-oracle-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.2",
+    "dotenv": "^18.0.1"
+  }
+}

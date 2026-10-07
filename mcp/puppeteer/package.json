@@ -1,0 +1,9 @@
+{
+  "name": "mcp-puppeteer-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Puppeteer MCP server for Claude Code browser automation (project-local install)",
+  "dependencies": {
+    "@hisma/server-puppeteer": "^0.6.5"
+  }
+}

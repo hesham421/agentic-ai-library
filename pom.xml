@@ -75,16 +75,23 @@
             <artifactId>ojdbc11</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- Non-Unicode database character sets (the TEST database is AR8MSWIN1256): without it the thin
+             driver refuses logon with ORA-17056. Version from the Boot-managed ojdbc BOM. -->
+        <dependency>
+            <groupId>com.oracle.database.nls</groupId>
+            <artifactId>orai18n</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- Schema migrations: each module's db-script sql fence, applied verbatim from
              src/main/resources/db/migration (V1 REG, V2 DOC, V3 CHK, V4 RPT). Versions from the Boot parent. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-oracle</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.flywaydb</groupId>-->
+<!--            <artifactId>flyway-database-oracle</artifactId>-->
+<!--        </dependency>-->
         <!-- DOC PORTS-DOCUMENT readers: PDF text extraction (PdfTextReader, REQ-DOC-025) and
              spreadsheet table extraction, HSSF (.xls) + XSSF (.xlsx) (SpreadsheetTableReader, REQ-DOC-026) -->
         <dependency>
